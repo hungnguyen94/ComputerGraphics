@@ -130,35 +130,66 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 			// Move lightsource to the left
 
 			Vec3Df temp = MyLightPositions.back();
-			temp[2] += 0.1;
+			temp[0] += 0.1;
 			MyLightPositions[MyLightPositions.size() - 1] = temp;
 
 		}
 
 			break;
+		
 		case 's':
-			// Move lightsource downwards
+		{
+			// Move lightsource backwards
+
+			Vec3Df temp = MyLightPositions.back();
+			temp[2] -= 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
 
 			break;
 		case 'd':
+		{
 			// Move lightsource to the right
-			
+
+			Vec3Df temp = MyLightPositions.back();
+			temp[0] -= 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
+
 			break;
+		
 		case 'w':
+		{
 			// Move lightsource forwards
 
+			Vec3Df temp = MyLightPositions.back();
+			temp[2] += 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
 			break;
 		case 'q':
-			// Move lightsource downwards 
+		{
+			// Move lightsource downwards
 
+			Vec3Df temp = MyLightPositions.back();
+			temp[1] -= 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
 			break;
 		case 'e':
+		{
 			// Move lightsource upwards
 
+			Vec3Df temp = MyLightPositions.back();
+			temp[1] += 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
 			break;
 	}
-	//...
 	
-	
-	//std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
