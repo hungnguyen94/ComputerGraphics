@@ -127,8 +127,8 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	{
 		case '/':
 		{
-			// Key up
-			Vec3Df temp = MyLightPositions.back();
+			// Change lightsource clockwise
+			Vec3Df temp = MyLightPositions.front();
 			MyLightPositions.push_back(temp);
 			MyLightPositions.erase(MyLightPositions.begin());
 
@@ -137,8 +137,11 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 		
 		case '*':
 		{
-			// Key Down
-			
+			// Change lightsource backwise
+
+			Vec3Df temp = MyLightPositions.back();
+			MyLightPositions.pop_back();
+			MyLightPositions.insert(MyLightPositions.begin(), temp);
 		
 		}
 		break;
