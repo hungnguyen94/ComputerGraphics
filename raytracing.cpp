@@ -53,8 +53,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3Df v0 = MyMesh.vertices[ MyMesh.triangles[i].v[0] ].p;
 		Vec3Df v1 = MyMesh.vertices[ MyMesh.triangles[i].v[1] ].p;
 		Vec3Df v2 = MyMesh.vertices[ MyMesh.triangles[i].v[2] ].p;
-
-		Vec3Df n = ( Vec3Df::crossProduct((v0-v2),(v1-v2)) ) / ( Vec3Df::crossProduct((v0-v2),(v1-v2)) );
+		Vec3Df p = Vec3Df::crossProduct((v0-v2),(v1-v2));
+		Vec3Df n = Vec3Df::crossProduct((v0-v2),(v1-v2)) / p.getLength();
 	}
 	/*
 	 * Distance=MAX
