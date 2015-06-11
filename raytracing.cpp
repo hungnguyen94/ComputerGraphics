@@ -12,6 +12,7 @@
 #include <GL/glut.h>
 #endif
 #include "raytracing.h"
+#include <cmath>
 
 
 //temporary variables
@@ -40,9 +41,33 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
+Vec3Df Intersect(const Vec3DF ray) {
+
+	for(unsigned in i = 0; i < MyMesh.triangles.size(); i++){
+		Vertex v0 = MyMesh.vertices[MyMesh.triangles[i].v[0]];
+		Vertex v1 = MyMesh.vertices[MyMesh.triangles[i].v[1]];
+		Vertex v2 = MyMesh.vertices[MyMesh.triangles[i].v[2]];
+	}
+
+	float n = crossProduct( (v0-v2), (v1-v2) ) / abs(crossProduct( (v0-v2), (v1-v2) ) )
+}
+
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
+	Vec3Df ray;
+	ray[0] = origin[0] - dest[0];
+	ray[1] = origin[1] - dest[1];
+	ray[2] = origin[2] - dest[2];
+
+	Intersect(ray, 
+	
+    	for( y=0; y<view.yres; ++y ){
+		for( x=0; x<view.xres; ++x){
+			Trace( 0, ray, &color );
+			PutPixel( x, y, color );
+		}
+	}
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
