@@ -43,10 +43,19 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
+Vec3Df Trace(int level, Vec3Df ray, Vec3Df &color) {
+    Vec3Df hit;
+
+    if( Intersect( level, ray, &hit) )
+        //Shade( level, hit, &color);
+    else
+        color = glClearColor(0.0, 0.0, 0.0, 0.0);
+}
+
 Vec3Df Intersect(int level, const Vec3Df ray, float max, Vec3Df &hit) {
-    Vector v0;
-    Vector v1;
-    Vector v2;
+    Vec3Df v0;
+    Vec3Df v1;
+    Vec3Df v2;
 
 	for(unsigned int i = 0; i < MyMesh.triangles.size(); i++){
 		v0 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p;
@@ -82,17 +91,6 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
-
-Vec3Df Trace(int level, Vec3Df ray, Vec3Df &color) {
-    Vec3Df hit;
-
-    if( Intersect( level, ray, &hit) )
-        //Shade( level, hit, &color);
-    else
-        color = glClearColor(0.0, 0.0, 0.0, 0.0);
-}
-
-
 
 void yourDebugDraw()
 {
