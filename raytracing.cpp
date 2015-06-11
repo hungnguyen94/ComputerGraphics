@@ -12,6 +12,8 @@
 #include <GL/glut.h>
 #endif
 #include "raytracing.h"
+#include "Vec3D.h"
+#include "matrix.h"
 
 
 //temporary variables
