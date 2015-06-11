@@ -20,8 +20,8 @@
 //a simple debug drawing. A ray
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-extern int WindowSize_X;
-extern int WindowSize_Y;
+extern unsigned int WindowSize_X;
+extern unsigned int WindowSize_Y;
 
 
 //use this function for any preprocessing of the mesh.
@@ -44,24 +44,21 @@ void init()
 }
 
 Vec3Df Intersect(int level, const Vec3Df ray, float max, Vec3Df &hit) {
-    Vertex v0;
-    Vertex v1;
-    Vertex v2;
+    Vector v0;
+    Vector v1;
+    Vector v2;
 
 	for(unsigned int i = 0; i < MyMesh.triangles.size(); i++){
-		v0 = MyMesh.vertices[MyMesh.triangles[i].v[0]];
-		v1 = MyMesh.vertices[MyMesh.triangles[i].v[1]];
-		v2 = MyMesh.vertices[MyMesh.triangles[i].v[2]];
+		v0 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p;
+		v1 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p;
+		v2 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p;
 	}
 
     // a normal to the plane
 	Vec3Df n = crossProduct( (v0-v2), (v1-v2) ) / crossProduct( (v0-v2), (v1-v2)).getLength() )
 
-    // a point on the plane (vertex 0 of the triangle)
-    //Vec3Df p = v0;
-
-    // d equals the projection of p onto n
-    Vec3Df d = projectOn(p , n);
+    // d equals the projection of v0 onto n
+    Vec3Df d = projectOn(v0 , n);
 }
 
 //return the color of your pixel.
@@ -76,8 +73,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 	Trace( 0, ray, &color);
 
-    	for(int y = 0; y< WindowSize_Y; ++y ){
-		for(int x = 0; x< WindowSize_X; ++x){
+    	for(unsigned int y = 0; y< WindowSize_Y; ++y ){
+		for(unsigned int x = 0; x< WindowSize_X; ++x){
 			Trace( 0, ray, &color );
 			//PutPixel( x, y, color );
 		}
@@ -90,9 +87,9 @@ Vec3Df Trace(int level, Vec3Df ray, Vec3Df &color) {
     Vec3Df hit;
 
     if( Intersect( level, ray, &hit) )
-        Shade( level, hit, &color);
+        //Shade( level, hit, &color);
     else
-        color = BackgroundColor;
+        color = glClearColor(0.0, 0.0, 0.0, 0.0);
 }
 
 
