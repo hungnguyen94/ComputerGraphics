@@ -13,6 +13,7 @@
 #endif
 #include "raytracing.h"
 #include <cmath>
+#include <Vec3D.h>
 
 
 //temporary variables
