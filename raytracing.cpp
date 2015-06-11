@@ -20,6 +20,8 @@
 //a simple debug drawing. A ray
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
+extern int WindowSize_X;
+extern int WindowSize_Y;
 
 
 //use this function for any preprocessing of the mesh.
@@ -74,8 +76,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 	Trace( 0, ray, &color);
 
-    	for(int y = 0; y<view.yres; ++y ){
-		for(int x = 0; x<view.xres; ++x){
+    	for(int y = 0; y< WindowSize_Y; ++y ){
+		for(int x = 0; x< WindowSize_X; ++x){
 			Trace( 0, ray, &color );
 			//PutPixel( x, y, color );
 		}
