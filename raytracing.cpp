@@ -58,6 +58,11 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3Df n = Vec3Df::crossProduct((v0-v2),(v1-v2)) / p.getLength();
 
 		Vec3Df intersect = Vec3Df::projectOntoVector(v0, n);
+
+		const GLdouble matrix[] = {v0[0],v0[1],v0[2],0, v1[0],v1[1],v1[2],0, v2[0],v2[1],v2[2],0, 0,0,0,0};
+		GLdouble res[];
+		inverse( matrix , res );
+		Vec3Df barycentricVector = vectorMultiplication(res, intersect);
 	}
 	/*
 	 * Distance=MAX
@@ -73,13 +78,6 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	*/
 	return color;
 }
-
-bool intersection()
-{
-
-}
-
-
 
 void yourDebugDraw()
 {

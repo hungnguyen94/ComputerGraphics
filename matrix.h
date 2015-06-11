@@ -50,6 +50,10 @@ void inverse( const double *m, double *p )
 	p[3] = p[7] = p[11] = 0; p[15] = 1;
 }
 
+Vec3Df vectorMultiplication(double *m, Vec3Df p) {
+	return Vec3Df(m[0]*p[0] + m[4]*p[1] + m[8]*p[2], m[1]*p[0] + m[5]*p[1] + m[9]*p[2], m[2]*p[0] + m[6]*p[1] + m[10]*p[2]);
+}
+
 
 
 #endif
