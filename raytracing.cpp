@@ -43,7 +43,7 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
-Vec3Df Trace(int level, Vec3Df ray, Vec3Df &color) {
+void Trace(int level, Vec3Df ray, Vec3Df &color) {
     Vec3Df hit;
 
     if( Intersect( level, ray, &hit) )
@@ -68,6 +68,8 @@ Vec3Df Intersect(int level, const Vec3Df ray, float max, Vec3Df &hit) {
 
     // d equals the projection of v0 onto n
     Vec3Df d = projectOn(v0 , n);
+
+    return v0;
 }
 
 //return the color of your pixel.
