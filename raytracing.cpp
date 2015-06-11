@@ -60,22 +60,8 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
 	if(level < max) {
 		for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
 		{
-			Triangle triangle = MyMesh.triangles[i];
-			Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
-			Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
-			Vec3Df n = Vec3Df::crossProduct (dest, edge1);
-			// std::cout << "crossproduct dest & edge1: " << n << "\n" << std::endl;
-			int dotProd = Vec3Df::dotProduct(edge0, n);
-			if(dotProd <= 0) //Deteriment > 0
-				return false;
-
-			Vec3Df distanceToOrigin = origin - MyMesh.vertices[triangle.v[0]].p;
-			int u = Vec3Df::dotProduct(distanceToOrigin, n);
-			std::cout << u << std::endl;
-
-			//std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
-			//std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
-			return true;
+			//Caculate the hitpoint with a triangle, if it hits
+			//return true
 		}
 	}
 	return false;
