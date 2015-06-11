@@ -125,18 +125,15 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	// WASDQE keys are used for moving the light source
 	switch (t)
 	{
-	case 'a':
-	{
-		// Move lightsource to the left
+		case 'a':
+		{
+			// Move lightsource to the left
 
-		Vec3Df temp = MyLightPositions.back();
-		temp[2] += 0.1;
-		MyLightPositions.pop_back();
-		MyLightPositions.push_back(temp);
+			Vec3Df temp = MyLightPositions.back();
+			temp[2] += 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
 
-		std::cout << "Moved the last light position!" << std::endl;
-
-	}
+		}
 
 			break;
 		case 's':
