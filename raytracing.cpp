@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -13,7 +12,7 @@
 #include <GL/glut.h>
 #endif
 #include "raytracing.h"
-#include "Vec3D.h"
+
 
 //temporary variables
 //these are only used to illustrate 
@@ -32,7 +31,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -44,39 +43,47 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
+	Vec3Df hit;
+	Vec3Df color;
+	int level = 0;
+	int max = 3;
+	if (intersectRay(origin, dest, hit, level, max))
+		shade(level, hit, color);
+	else
+		color = Vec3Df(0, 0, 0);
 
-	float MAX = 1;
-	Vec3Df color = Vec3Df(0,0,0);
-	Vec3Df dir = dest - origin;
-
-	for (unsigned int i = 0; i < MyMesh.triangles.size(); i++) {
-		Vec3Df v0 = MyMesh.vertices[ MyMesh.triangles[i].v[0] ].p;
-		Vec3Df v1 = MyMesh.vertices[ MyMesh.triangles[i].v[1] ].p;
-		Vec3Df v2 = MyMesh.vertices[ MyMesh.triangles[i].v[2] ].p;
-
-		Vec3Df p = Vec3Df::crossProduct((v0-v2),(v1-v2));
-		Vec3Df n = Vec3Df::crossProduct((v0-v2),(v1-v2)) / p.getLength();
-
-		Vec3Df intersect = Vec3Df::projectOntoVector(v0, n);
-
-		const GLdouble matrix[] = {v0[0],v0[1],v0[2],0, v1[0],v1[1],v1[2],0, v2[0],v2[1],v2[2],0, 0,0,0,0};
-		GLdouble res[];
-		inverse( matrix , res );
-		Vec3Df barycentricVector = vectorMultiplication(res, intersect);
-	}
-	/*
-	 * Distance=MAX
-		Color=0
-		For each triangle
-			(CurrColor,CurrDistance)=computeIntersection(Ray, triangle)
-			If (CurrDistance<Distance)
-			{
-				CurrDistance=Distance
-				Color=CurrColor
-			{
-		 }
-	*/
 	return color;
+}
+
+bool intersectRay(const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max)
+{
+	if (level < max) {
+		for (unsigned int i = 0; i < MyMesh.triangles.size(); i++)
+		{
+			//Caculate the hitpoint with a triangle, if it hits
+			//return true
+
+			Vec3Df v0 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p;
+			Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p;
+			Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p;
+
+			Vec3Df p = Vec3Df::crossProduct((v0 - v2), (v1 - v2));
+			Vec3Df n = Vec3Df::crossProduct((v0 - v2), (v1 - v2)) / p.getLength();
+
+			Vec3Df intersect = Vec3Df::projectOntoVector(v0, n);
+
+			const GLdouble matrix[] = { v0[0], v0[1], v0[2], 0, v1[0], v1[1], v1[2], 0, v2[0], v2[1], v2[2], 0, 0, 0, 0, 0 };
+			GLdouble res[];
+			inverse(matrix, res);
+			Vec3Df barycentricVector = vectorMultiplication(res, intersect);
+		}
+	}
+	return false;
+}
+
+void shade(int & level, Vec3Df & hit, Vec3Df & color) {
+	level++;
+	color = Vec3Df(0, 0, 0);
 }
 
 void yourDebugDraw()
@@ -86,14 +93,14 @@ void yourDebugDraw()
 
 	//let's draw the mesh
 	MyMesh.draw();
-	
+
 	//let's draw the lights in the scene as points
 	glPushAttrib(GL_ALL_ATTRIB_BITS); //store all GL attributes
 	glDisable(GL_LIGHTING);
-	glColor3f(1,1,1);
+	glColor3f(1, 1, 1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (int i=0;i<MyLightPositions.size();++i)
+	for (int i = 0; i<MyLightPositions.size(); ++i)
 		glVertex3fv(MyLightPositions[i].pointer());
 	glEnd();
 	glPopAttrib();//restore all GL attributes
@@ -107,9 +114,9 @@ void yourDebugDraw()
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
-	glColor3f(0,1,1);
+	glColor3f(0, 1, 1);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
-	glColor3f(0,0,1);
+	glColor3f(0, 0, 1);
 	glVertex3f(testRayDestination[0], testRayDestination[1], testRayDestination[2]);
 	glEnd();
 	glPointSize(10);
@@ -117,7 +124,7 @@ void yourDebugDraw()
 	glVertex3fv(MyLightPositions[0].pointer());
 	glEnd();
 	glPopAttrib();
-	
+
 	//draw whatever else you want...
 	////glutSolidSphere(1,10,10);
 	////allows you to draw a sphere at the origin.
@@ -150,13 +157,13 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
-	testRayOrigin=rayOrigin;	
-	testRayDestination=rayDestination;
-	
+	testRayOrigin = rayOrigin;
+	testRayDestination = rayDestination;
+
 	// do here, whatever you want with the keyboard input t.
-	
+
 	//...
-	
-	
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+
+
+	std::cout << t << " pressed! The mouse was in location " << x << "," << y << "!" << std::endl;
 }
