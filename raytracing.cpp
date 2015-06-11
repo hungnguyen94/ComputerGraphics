@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -12,7 +13,7 @@
 #include <GL/glut.h>
 #endif
 #include "raytracing.h"
-
+#include "Vec3D.h"
 
 //temporary variables
 //these are only used to illustrate 
@@ -43,7 +44,36 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	return Vec3Df(dest[0],dest[1],dest[2]);
+
+	float MAX = 1;
+	Vec3Df color = Vec3Df(0,0,0);
+	Vec3Df dir = dest - origin;
+
+	for (unsigned int i = 0; i < MyMesh.triangles.size(); i++) {
+		Vec3D v0 = MyMesh.vertices[ MyMesh.triangles[i].v[0] ];
+		Vec3D v1 = MyMesh.vertices[ MyMesh.triangles[i].v[1] ];
+		Vec3D v2 = MyMesh.vertices[ MyMesh.triangles[i].v[2] ];
+
+		Vec3D n = ( Vec3D.crossProduct((v0-v2),(v1-v2)) ) / ( Vec3D.crossProduct((v0-v2),(v1-v2)) );
+	}
+	/*
+	 * Distance=MAX
+		Color=0
+		For each triangle
+			(CurrColor,CurrDistance)=computeIntersection(Ray, triangle)
+			If (CurrDistance<Distance)
+			{
+				CurrDistance=Distance
+				Color=CurrColor
+			{
+		 }
+	*/
+	return color;
+}
+
+bool intersection()
+{
+
 }
 
 
