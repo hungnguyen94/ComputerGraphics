@@ -31,7 +31,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+    MyMesh.loadMesh("C:/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -122,10 +122,36 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	testRayOrigin=rayOrigin;	
 	testRayDestination=rayDestination;
 	
-	// do here, whatever you want with the keyboard input t.
-	
+	// WASDQE keys are used for moving the light source
+	switch (t)
+	{
+		case 'a':
+			// Move lightsource to the left
+
+			break;
+		case 's':
+			// Move lightsource downwards
+
+			break;
+		case 'd':
+			// Move lightsource to the right
+			
+			break;
+		case 'w':
+			// Move lightsource forwards
+
+			break;
+		case 'q':
+			// Move lightsource downwards 
+
+			break;
+		case 'e':
+			// Move lightsource upwards
+
+			break;
+	}
 	//...
 	
 	
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+	//std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
