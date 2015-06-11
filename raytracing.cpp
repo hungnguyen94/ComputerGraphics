@@ -43,7 +43,7 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
-void Trace(int level, Vec3Df ray, Vec3Df &color) {
+void Trace(int level, const Vec3Df ray, Vec3Df &color) {
     Vec3Df hit;
 
     if( Intersect( level, ray, &hit) )
@@ -63,11 +63,14 @@ Vec3Df Intersect(int level, const Vec3Df ray, float max, Vec3Df &hit) {
 		v2 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p;
 	}
 
+    Vec3Df crossP1 = Vec3D::crossProduct( (v0-v2), (v1-v2));
+    Vec3Df crossP2 = Vec3D::crossP1.getLength();
+
     // a normal to the plane
-	Vec3Df n = crossProduct( (v0-v2), (v1-v2) ) / crossProduct( (v0-v2), (v1-v2)).getLength() )
+	Vec3Df n = crossP1 / crossP2;
 
     // d equals the projection of v0 onto n
-    Vec3Df d = projectOn(v0 , n);
+    Vec3Df d = Vec3D::projectOn(v0 , n);
 
     return v0;
 }
@@ -84,9 +87,9 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 	Trace( 0, ray, &color);
 
-    	for(unsigned int y = 0; y< WindowSize_Y; ++y ){
-		for(unsigned int x = 0; x< WindowSize_X; ++x){
-			Trace( 0, ray, &color );
+    	for(unsigned int y = 0; y < WindowSize_Y; ++y ){
+		for(unsigned int x = 0; x < WindowSize_X; ++x){
+			//Trace( 0, ray, &color );
 			//PutPixel( x, y, color );
 		}
 	}
