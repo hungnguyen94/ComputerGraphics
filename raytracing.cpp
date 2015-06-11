@@ -31,7 +31,8 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -43,19 +44,27 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	//return Vec3Df(dest[0],dest[1],dest[2]);
+	float currDistance = 9999.f;
+	float distance = 0.f;
+	Vec3Df currColor = Vec3Df(0,0,0);
+
 	for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
 	{
-		Vec3Df color;
-		intersectRay(origin, dest, color, MyMesh.triangles[i]);
 		//std::cout << "current triangle: " << i << "/" << MyMesh.triangles.size() << "\n" << std::endl;
-
+		Vec3Df color = Vec3Df(0,0,0);
+		float distance = intersectRay(origin, dest, color, MyMesh.triangles[i]);
+		if( distance != 0 && distance < currDistance )
+		{
+			std::cout << "distance of intersection: " << distance << "\n" << std::endl;
+			currColor = color;
+			currDistance = distance;
+		}
 	}
-
-	return Vec3Df(dest[0],dest[1],dest[2]);
+	return currColor;
+	//return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor, Triangle & triangle )
+float intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor, Triangle & triangle )
 {
     Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
@@ -63,32 +72,57 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColo
    // std::cout << "crossproduct dest & edge1: " << n << "\n" << std::endl;
     float det = Vec3Df::dotProduct(edge0, n);
 
-    if(det > -0.000001 && det < 0.000001)
-    	return false;
+    if(det == 0)
+    	return 0;
 
     Vec3Df distanceToOrigin = origin - MyMesh.vertices[triangle.v[0]].p;
     float u = Vec3Df::dotProduct(distanceToOrigin, n) / det;
     if(u < 0.f || u > 1.f)
-    	return false;
+    	return 0;
     //std::cout << u << std::endl;
 
     Vec3Df Q = Vec3Df::crossProduct(distanceToOrigin, edge0);
     float v = Vec3Df::dotProduct(dest, Q) / det;
     if(v < 0.f || u + v > 1.f)
     {
-//    	std::cout << "no intersection\nv:  " << v << "\n" << std::endl;
-    	return false;
+    	return 0;
     }
 
-    float intersection = Vec3Df::dotProduct(edge1, Q) / det;
+    float distance = Vec3Df::dotProduct(edge1, Q) / det;
 
-    std::cout << "intersection: " << intersection << "\n" << std::endl;
-
+    std::cout << "intersection: " << distance << "\n" << std::endl;
+    currColor = Vec3Df(MyMesh.triangleMaterials[triangle.t[0]], MyMesh.triangleMaterials[triangle.t[1]], MyMesh.triangleMaterials[triangle.t[2]]);
     //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
 	//std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
-	return true;
+	return distance;
 }
 
+
+float intersectRay2( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor, Triangle & triangle )
+{
+	float distance;
+    Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df n = Vec3Df::crossProduct (dest, edge1);
+    n.normalize();
+    float d = Vec3Df::dotProduct(n, edge0);
+    float nDotR = Vec3Df::dotProduct(n, dest);
+
+    if(nDotR > 0.0f)
+    {
+        distance = (Vec3Df::dotProduct(n, origin) + d) / nDotR;
+
+        if(distance >= 0.0f && distance < 2000)
+        {
+           Vec3Df intersection = dest * distance + origin;
+           std::cout << "Intersection at: " << intersection << "\n" << std::endl;
+           return distance;
+        }
+    }
+
+    return 0.f;
+
+}
 
 void yourDebugDraw()
 {

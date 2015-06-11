@@ -37,8 +37,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 800;  // resolution X
-unsigned int WindowSize_Y = 800;  // resolution Y
+unsigned int WindowSize_X = 400;  // resolution X
+unsigned int WindowSize_Y = 400;  // resolution Y
 
 
 
@@ -243,6 +243,8 @@ void keyboard(unsigned char key, int x, int y)
 
 		
 		for (unsigned int y=0; y<WindowSize_Y;++y)
+		{
+			std::cout << "Progress: " << y << "/" << WindowSize_Y << "" << std::endl;
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
 				//produce the rays for each pixel, by interpolating 
@@ -254,12 +256,13 @@ void keyboard(unsigned char key, int x, int y)
 					(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
 				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
 					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
-
+				//std::cout << "Current coordinate: " << x << ", " << y << "" << std::endl;
 				//launch raytracing for the given ray.
 				Vec3Df rgb = performRayTracing(origin, dest);
 				//store the result in an image 
 				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
 			}
+		}
 
 		result.writeImage("result.ppm");
 		break;
