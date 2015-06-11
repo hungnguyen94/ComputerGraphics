@@ -43,37 +43,48 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	for(unsigned int xRes = 0; xRes < WindowSize_X; xRes++)
-		for(unsigned int yRes = 0; yRes < WindowSize_Y; yRes++)
-			for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
-			{
-				Vec3Df color;
-				intersectRay(origin, dest, color, MyMesh.triangles[i]);
+	Vec3Df hit;
+	Vec3Df color;
+	int level = 0;
+	int max = 3;
+	if( intersectRay(origin, dest, hit, level, max) )
+		shade( level, hit, color );
+	else
+		color = Vec3Df(0,0,0);
 
-			}
-
-	return Vec3Df(dest[0],dest[1],dest[2]);
+	return color;
 }
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor, Triangle & triangle )
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max)
 {
-    Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df n = Vec3Df::crossProduct (dest, edge1);
-   // std::cout << "crossproduct dest & edge1: " << n << "\n" << std::endl;
-    int dotProd = Vec3Df::dotProduct(edge0, n);
-    if(dotProd > 0) //Deteriment > 0
-    	return false;
+	if(level < max) {
+		for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
+		{
+			Triangle triangle = MyMesh.triangles[i];
+			Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
+			Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
+			Vec3Df n = Vec3Df::crossProduct (dest, edge1);
+			// std::cout << "crossproduct dest & edge1: " << n << "\n" << std::endl;
+			int dotProd = Vec3Df::dotProduct(edge0, n);
+			if(dotProd <= 0) //Deteriment > 0
+				return false;
 
-    Vec3Df distanceToOrigin = origin - MyMesh.vertices[triangle.v[0]].p;
-    int u = Vec3Df::dotProduct(distanceToOrigin, n);
-    std::cout << u << std::endl;
+			Vec3Df distanceToOrigin = origin - MyMesh.vertices[triangle.v[0]].p;
+			int u = Vec3Df::dotProduct(distanceToOrigin, n);
+			std::cout << u << std::endl;
 
-    //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
-	//std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
-	return true;
+			//std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
+			//std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
+			return true;
+		}
+	}
+	return false;
 }
 
+void shade( int & level, Vec3Df & hit, Vec3Df color) {
+	level++;
+	color = Vec3Df(0,0,0);
+}
 
 void yourDebugDraw()
 {
