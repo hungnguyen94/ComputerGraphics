@@ -22,7 +22,10 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
+bool intersectRay(const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max);
+void shade(int & level, Vec3Df & hit, Vec3Df & color);
 
+//bool intersectRay(const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max);
 //use this function for any preprocessing of the mesh.
 void init()
 {
