@@ -81,7 +81,7 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
 	return false;
 }
 
-void shade( int & level, Vec3Df & hit, Vec3Df color) {
+void shade( int & level, Vec3Df & hit, Vec3Df & color) {
 	level++;
 	color = Vec3Df(0,0,0);
 }
