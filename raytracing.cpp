@@ -43,10 +43,12 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
+	//return Vec3Df(dest[0],dest[1],dest[2]);
 	for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
 	{
 		Vec3Df color;
 		intersectRay(origin, dest, color, MyMesh.triangles[i]);
+		//std::cout << "current triangle: " << i << "/" << MyMesh.triangles.size() << "\n" << std::endl;
 
 	}
 
@@ -60,7 +62,8 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColo
     Vec3Df n = Vec3Df::crossProduct (dest, edge1);
    // std::cout << "crossproduct dest & edge1: " << n << "\n" << std::endl;
     float det = Vec3Df::dotProduct(edge0, n);
-    if(det <= 0) //Deteriment == 0
+
+    if(det > -0.000001 && det < 0.000001)
     	return false;
 
     Vec3Df distanceToOrigin = origin - MyMesh.vertices[triangle.v[0]].p;
@@ -72,7 +75,10 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColo
     Vec3Df Q = Vec3Df::crossProduct(distanceToOrigin, edge0);
     float v = Vec3Df::dotProduct(dest, Q) / det;
     if(v < 0.f || u + v > 1.f)
-    	return 0;
+    {
+//    	std::cout << "no intersection\nv:  " << v << "\n" << std::endl;
+    	return false;
+    }
 
     float intersection = Vec3Df::dotProduct(edge1, Q) / det;
 
