@@ -31,7 +31,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("C:/dodgeColorTest.obj", true);
+    MyMesh.loadMesh("C:/Users/Jasper Hu/Documents/CG/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -125,6 +125,24 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	// WASDQE keys are used for moving the light source
 	switch (t)
 	{
+		case '/':
+		{
+			// Key up
+			Vec3Df temp = MyLightPositions.back();
+			MyLightPositions.push_back(temp);
+			MyLightPositions.erase(MyLightPositions.begin());
+
+		}
+		break;
+		
+		case '*':
+		{
+			// Key Down
+			
+		
+		}
+		break;
+
 		case 'a':
 		{
 			// Move lightsource to the left
@@ -183,7 +201,7 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 		case 'e':
 		{
 			// Move lightsource upwards
-
+			
 			Vec3Df temp = MyLightPositions.back();
 			temp[1] += 0.1;
 			MyLightPositions[MyLightPositions.size() - 1] = temp;
