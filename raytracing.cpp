@@ -31,8 +31,8 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
-	//MyMesh.loadMesh("cube.obj", true);
+	//MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -56,7 +56,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		if( distance != 0 && distance < currDistance )
 		{
 			std::cout << "distance of intersection: " << distance << "\n" << std::endl;
-			currColor = color;
+			currColor = Vec3Df(1,1,1);
+
 			currDistance = distance;
 		}
 	}
@@ -69,7 +70,7 @@ float intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currCol
     Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df n = Vec3Df::crossProduct (dest, edge1);
-   // std::cout << "crossproduct dest & edge1: " << n << "\n" << std::endl;
+    //std::cout << "crossproduct dest & edge1: " << n << "\n" << std::endl;
     float det = Vec3Df::dotProduct(edge0, n);
 
     if(det == 0)
@@ -88,10 +89,15 @@ float intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currCol
     	return 0;
     }
 
-    float distance = Vec3Df::dotProduct(edge1, Q) / det;
+    float t = Vec3Df::dotProduct(edge1, Q) / det;
+
+    float distance = t;
+
+    if(distance < 0)
+    	return 0;
 
     std::cout << "intersection: " << distance << "\n" << std::endl;
-    currColor = Vec3Df(MyMesh.triangleMaterials[triangle.t[0]], MyMesh.triangleMaterials[triangle.t[1]], MyMesh.triangleMaterials[triangle.t[2]]);
+    currColor = Vec3Df(0,0,0);
     //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
 	//std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
 	return distance;
