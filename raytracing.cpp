@@ -57,19 +57,60 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max)
 {
-	if(level < max) {
-		for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
-		{
-			//Caculate the hitpoint with a triangle, if it hits
-			//return true
-		}
-	}
-	return false;
+    float currDistance = 9999.f;
+    float distance = 0.f;
+    
+    for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
+    {
+        float distance = intersect(origin, dest, color, MyMesh.triangles[i]);
+        if( distance != 0 && distance < currDistance )
+        {
+            std::cout << "distance of intersection: " << distance << "\n" << std::endl;
+            hit = distance;
+            return true;
+        }
+    }
+    return false;
+}
+
+float intersect( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor, Triangle & triangle )
+{
+    Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df n = Vec3Df::crossProduct (dest, edge1);
+    float det = Vec3Df::dotProduct(edge0, n);
+    
+    if(det == 0)
+        return 0;
+    
+    Vec3Df distanceToOrigin = origin - MyMesh.vertices[triangle.v[0]].p;
+    float u = Vec3Df::dotProduct(distanceToOrigin, n) / det;
+    if(u < 0.f || u > 1.f)
+        return 0;
+    //std::cout << u << std::endl;
+    
+    Vec3Df Q = Vec3Df::crossProduct(distanceToOrigin, edge0);
+    float v = Vec3Df::dotProduct(dest, Q) / det;
+    if(v < 0.f || u + v > 1.f)
+    {
+        return 0;
+    }
+    
+    float distance = Vec3Df::dotProduct(edge1, Q) / det;
+    
+    if(distance < 0)
+        return 0;
+    
+    std::cout << "intersection: " << distance << "\n" << std::endl;
+    currColor = Vec3Df(0,0,0);
+    //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
+    //std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
+    return distance;
 }
 
 void shade( int & level, Vec3Df & hit, Vec3Df & color) {
 	level++;
-	color = Vec3Df(0,0,0);
+	color = Vec3Df(1,1,1);
 }
 
 void yourDebugDraw()
