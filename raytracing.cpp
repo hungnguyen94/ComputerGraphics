@@ -31,7 +31,8 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+	// MyMesh.loadMesh("dodgeColorTest.obj", true);
+    MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -43,26 +44,28 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	Vec3Df hit;
+	float hit;
 	Vec3Df color;
 	int level = 0;
 	int max = 3;
-	if( intersectRay(origin, dest, hit, level, max) )
+	if( intersectRay(origin, dest, hit, level, max) ) {
 		shade( level, hit, color );
+		std::cout << hit << " at " << std::endl;
+	}
 	else
 		color = Vec3Df(0,0,0);
 
 	return color;
 }
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max)
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int & level, const int & max)
 {
     float currDistance = 9999.f;
     float distance = 0.f;
     
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
-        float distance = intersect(origin, dest, color, MyMesh.triangles[i]);
+        float distance = intersect(origin, dest, MyMesh.triangles[i]);
         if( distance != 0 && distance < currDistance )
         {
             std::cout << "distance of intersection: " << distance << "\n" << std::endl;
@@ -73,7 +76,7 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
     return false;
 }
 
-float intersect( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor, Triangle & triangle )
+float intersect( const Vec3Df & origin, const Vec3Df & dest, Triangle & triangle )
 {
     Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
@@ -102,13 +105,12 @@ float intersect( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor,
         return 0;
     
     std::cout << "intersection: " << distance << "\n" << std::endl;
-    currColor = Vec3Df(0,0,0);
     //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
     //std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
     return distance;
 }
 
-void shade( int & level, Vec3Df & hit, Vec3Df & color) {
+void shade( int & level, float & hit, Vec3Df & color) {
 	level++;
 	color = Vec3Df(1,1,1);
 }
