@@ -48,17 +48,20 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	Vec3Df color;
 	int level = 0;
 	int max = 3;
-	if( intersectRay(origin, dest, hit, level, max) ) {
-		shade( level, hit, color );
-		std::cout << hit << " at " << std::endl;
+	int triangleIndex = 0;
+	if( intersectRay(origin, dest, hit, level, max, triangleIndex) )
+	{
+		std::cout << "Intersection distance " << hit << " at index " << triangleIndex <<std::endl;
+		shade( level, hit, color, triangleIndex );
 	}
 	else
+	{
 		color = Vec3Df(0,0,0);
-
+	}
 	return color;
 }
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int & level, const int & max)
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int & level, const int & max, int & triangleIndex)
 {
     float currDistance = 9999.f;
     float distance = 0.f;
@@ -68,12 +71,20 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int 
         float distance = intersect(origin, dest, MyMesh.triangles[i]);
         if( distance != 0 && distance < currDistance )
         {
-            std::cout << "distance of intersection: " << distance << "\n" << std::endl;
-            hit = distance;
-            return true;
+        	currDistance = distance;
+            triangleIndex = i;
         }
     }
-    return false;
+
+    if( currDistance < 9999.f ) {
+    	hit = currDistance;
+    	return true;
+    }
+    else {
+    	hit = 9999.f;
+    	return false;
+    }
+
 }
 
 float intersect( const Vec3Df & origin, const Vec3Df & dest, Triangle & triangle )
@@ -104,15 +115,17 @@ float intersect( const Vec3Df & origin, const Vec3Df & dest, Triangle & triangle
     if(distance < 0)
         return 0;
     
-    std::cout << "intersection: " << distance << "\n" << std::endl;
+    //std::cout << "intersection: " << distance << "\n" << std::endl;
     //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
     //std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
     return distance;
 }
 
-void shade( int & level, float & hit, Vec3Df & color) {
+void shade( int & level, float & hit, Vec3Df & color, int & triangleIndex) {
 	level++;
-	color = Vec3Df(1,1,1);
+	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
+	color = material.Kd();
+	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\n kd: " << material.Kd() << "\nks" <<material.Ks() << std::endl;
 }
 
 void yourDebugDraw()

@@ -24,11 +24,11 @@ void init();
 //it is defined elsewhere
 void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int & level, const int & max);
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int & level, const int & max, int & triangleIndex);
 
 float intersect( const Vec3Df & origin, const Vec3Df & dest, Triangle & triangle );
 
-void shade( int & level, float & hit, Vec3Df & color);
+void shade( int & level, float & hit, Vec3Df & color, int & triangleIndex);
 
 //your main function to rewrite
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
