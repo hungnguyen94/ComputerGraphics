@@ -31,8 +31,8 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-	// MyMesh.loadMesh("dodgeColorTest.obj", true);
-    MyMesh.loadMesh("cube.obj", true);
+	MyMesh.loadMesh("dodgeColorTest.obj", true);
+    //MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -65,6 +65,7 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int 
 {
     float currDistance = 9999.f;
     float distance = 0.f;
+    bool intersected = false;
     
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
@@ -73,10 +74,11 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int 
         {
         	currDistance = distance;
             triangleIndex = i;
+            intersected = true;
         }
     }
 
-    if( currDistance < 9999.f ) {
+    if( intersected ) {
     	hit = currDistance;
     	return true;
     }
@@ -123,10 +125,16 @@ float intersect( const Vec3Df & origin, const Vec3Df & dest, Triangle & triangle
 
 void shade( int & level, float & hit, Vec3Df & color, int & triangleIndex) {
 	level++;
+//	for (int i=0; i < MyLightPositions.size(); ++i)
+//	{
+//
+//	}
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	color = material.Kd();
-	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\n kd: " << material.Kd() << "\nks" <<material.Ks() << std::endl;
+	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << std::endl;
 }
+
+Vec3Df computeDirectLight
 
 void yourDebugDraw()
 {
