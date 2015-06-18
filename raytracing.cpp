@@ -134,7 +134,7 @@ void shade( int & level, float & hit, Vec3Df & color, int & triangleIndex) {
 	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << std::endl;
 }
 
-Vec3Df computeDirectLight
+//Vec3Df computeDirectLight;
 
 void yourDebugDraw()
 {
@@ -210,10 +210,85 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	testRayOrigin=rayOrigin;	
 	testRayDestination=rayDestination;
 	
-	// do here, whatever you want with the keyboard input t.
-	
-	//...
-	
-	
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+	// WASDQE keys are used for moving the light source
+	switch (t)
+	{
+		case '/':
+		{
+			// Change lightsource clockwise
+			Vec3Df temp = MyLightPositions.front();
+			MyLightPositions.push_back(temp);
+			MyLightPositions.erase(MyLightPositions.begin());
+
+		}
+		break;
+
+		case '*':
+		{
+			// Change lightsource backwise
+			Vec3Df temp = MyLightPositions.back();
+			MyLightPositions.pop_back();
+			MyLightPositions.insert(MyLightPositions.begin(), temp);
+
+		}
+		break;
+
+		case 'a':
+		{
+			// Move lightsource to the left
+			Vec3Df temp = MyLightPositions.back();
+			temp[0] += 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
+			break;
+
+		case 's':
+		{
+			// Move lightsource backwards
+			Vec3Df temp = MyLightPositions.back();
+			temp[2] -= 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
+
+		break;
+		case 'd':
+		{
+			// Move lightsource to the right
+			Vec3Df temp = MyLightPositions.back();
+			temp[0] -= 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
+			break;
+
+		case 'w':
+		{
+			// Move lightsource forwards
+			Vec3Df temp = MyLightPositions.back();
+			temp[2] += 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
+			break;
+		case 'q':
+		{
+			// Move lightsource downwards
+			Vec3Df temp = MyLightPositions.back();
+			temp[1] -= 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+
+		}
+			break;
+		case 'e':
+		{
+			// Move lightsource upwards
+			Vec3Df temp = MyLightPositions.back();
+			temp[1] += 0.1;
+			MyLightPositions[MyLightPositions.size() - 1] = temp;
+		}
+			break;
+	}
 }
+
