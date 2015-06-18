@@ -89,9 +89,7 @@ float intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currCol
     	return 0;
     }
 
-    float t = Vec3Df::dotProduct(edge1, Q) / det;
-
-    float distance = t;
+    float distance = Vec3Df::dotProduct(edge1, Q) / det;
 
     if(distance < 0)
     	return 0;
@@ -101,33 +99,6 @@ float intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currCol
     //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
 	//std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
 	return distance;
-}
-
-
-float intersectRay2( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & currColor, Triangle & triangle )
-{
-	float distance;
-    Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df n = Vec3Df::crossProduct (dest, edge1);
-    n.normalize();
-    float d = Vec3Df::dotProduct(n, edge0);
-    float nDotR = Vec3Df::dotProduct(n, dest);
-
-    if(nDotR > 0.0f)
-    {
-        distance = (Vec3Df::dotProduct(n, origin) + d) / nDotR;
-
-        if(distance >= 0.0f && distance < 2000)
-        {
-           Vec3Df intersection = dest * distance + origin;
-           std::cout << "Intersection at: " << intersection << "\n" << std::endl;
-           return distance;
-        }
-    }
-
-    return 0.f;
-
 }
 
 void yourDebugDraw()
