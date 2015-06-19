@@ -244,7 +244,7 @@ void keyboard(unsigned char key, int x, int y)
 		
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
-
+			std::cout << "Progress: " << y << "/" << WindowSize_Y << std::endl;
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
 

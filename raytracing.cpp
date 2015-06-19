@@ -32,7 +32,7 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	MyMesh.loadMesh("dodgeColorTest.obj", true);
-    //MyMesh.loadMesh("cube.obj", true);
+	//MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -44,15 +44,16 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	float hit;
+	Vec3Df hit;
 	Vec3Df color;
 	int level = 0;
 	int max = 3;
 	int triangleIndex = 0;
 	if( intersectRay(origin, dest, hit, level, max, triangleIndex) )
 	{
-		std::cout << "Intersection distance " << hit << " at index " << triangleIndex <<std::endl;
+		std::cout << "Intersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
 		shade( level, hit, color, triangleIndex );
+		//color = Vec3Df(1,1,1);
 	}
 	else
 	{
@@ -61,80 +62,147 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	return color;
 }
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, float & hit, int & level, const int & max, int & triangleIndex)
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max, int & triangleIndex)
 {
     float currDistance = 9999.f;
-    float distance = 0.f;
     bool intersected = false;
+    Vec3Df intersectionPoint;
     
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
-        float distance = intersect(origin, dest, MyMesh.triangles[i]);
-        if( distance != 0 && distance < currDistance )
+    	float distance = 0.f;
+    	float distance2 = 0.f;
+    	float distance3 = 0.f;
+    	//bool i1 = intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance) & (distance < currDistance);
+        //bool i2 = intersect2(origin, dest, MyMesh.triangles[i], intersectionPoint, distance2) & (distance2 < currDistance);
+    	bool i3 = intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance3) & (distance3 < currDistance);
+       // if( intersect2(origin, dest, MyMesh.triangles[i], intersectionPoint, distance) & (distance < currDistance) )
+        if(i3)
         {
-        	currDistance = distance;
+        	std::cout << "distance i1: " << distance << "\ndistance i2: " << distance2 << "\ndistance i3: " << distance3 << "\ntriangleindex: " << i << std::endl;
+        	currDistance = distance3;
             triangleIndex = i;
+            hit = intersectionPoint;
             intersected = true;
         }
     }
 
-    if( intersected ) {
-    	hit = currDistance;
+    if( intersected )
     	return true;
-    }
-    else {
-    	hit = 9999.f;
+    else
     	return false;
-    }
-
 }
 
-float intersect( const Vec3Df & origin, const Vec3Df & dest, Triangle & triangle )
+bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & t )
 {
-    Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df n = Vec3Df::crossProduct (dest, edge1);
-    float det = Vec3Df::dotProduct(edge0, n);
-    
-    if(det == 0)
-        return 0;
-    
-    Vec3Df distanceToOrigin = origin - MyMesh.vertices[triangle.v[0]].p;
-    float u = Vec3Df::dotProduct(distanceToOrigin, n) / det;
-    if(u < 0.f || u > 1.f)
-        return 0;
-    //std::cout << u << std::endl;
-    
-    Vec3Df Q = Vec3Df::crossProduct(distanceToOrigin, edge0);
-    float v = Vec3Df::dotProduct(dest, Q) / det;
-    if(v < 0.f || u + v > 1.f)
-    {
-        return 0;
-    }
-    
-    float distance = Vec3Df::dotProduct(edge1, Q) / det;
-    
-    if(distance < 0)
-        return 0;
-    
-    //std::cout << "intersection: " << distance << "\n" << std::endl;
-    //std::cout << "dotproduct edge0 & cross: " << dot << "\n" << std::endl;
-    //std::cout << "vector0: " << edge0 << " \nvector1: " << edge1 << " \nn: " << n << "\n\n" << std::endl;
-    return distance;
+    // Compute the normal plane.
+	Vec3Df v0v1 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df v0v2 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df normal = Vec3Df::crossProduct (v0v1, v0v2);
+	//std::cout << "normal: " << normal << "\nnormal2: " << normal2 << std::endl;
+
+    //float area2 = normal.getLength();
+
+    // If determinant == 0 then ray and plane are parallel
+    // And no intersection takes place.
+    float NdotR = Vec3Df::dotProduct(normal, -dest);
+    //std::cout << "NdotR: " << NdotR << std::endl;
+    if (NdotR < 0.1f && NdotR > -0.1f)
+    	return false;
+
+    // Compute distance from the origin to the plane.
+    float d = Vec3Df::dotProduct(normal, MyMesh.vertices[triangle.v[0]].p);
+    //std::cout << "d: " << d << std::endl;
+    // Compute the distance from the origin to the intersection point.
+    t = (Vec3Df::dotProduct(normal, origin) + d) / (NdotR);
+    //std::cout << "t: " << t << std::endl;
+    if(t < 0)
+    	return false;
+
+    // Compute intersection point
+    // intersectPoint = origin + distanceIntersectPoint * directionRay
+    hit = origin + t * dest;
+
+/*    // Test whether point is inside the triangle.
+    Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[1]].p;
+    Vec3Df edge2 = MyMesh.vertices[triangle.v[0]].p - MyMesh.vertices[triangle.v[2]].p;
+    Vec3Df pv0 = hit - MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df pv1 = hit - MyMesh.vertices[triangle.v[1]].p;
+    Vec3Df pv2 = hit - MyMesh.vertices[triangle.v[2]].p;
+    float dot0 = Vec3Df::dotProduct(normal, Vec3Df::crossProduct(edge0, pv0));
+    float dot1 = 1;//Vec3Df::dotProduct(normal, Vec3Df::crossProduct(edge1, pv1));
+    float dot2 = Vec3Df::dotProduct(normal, Vec3Df::crossProduct(edge2, pv2));
+   // std::cout << "dot0: " << dot0 << "\ndot1: " << dot1 << "\ndot2: " << dot2 << std::endl;
+    if( dot0 > 0 || dot1 > 0 || dot2 > 0 )
+    	return false;*/
+    return true;
 }
 
-void shade( int & level, float & hit, Vec3Df & color, int & triangleIndex) {
+bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance )
+{
+    // Compute the normal plane.
+	Vec3Df v0v1 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df v0v2 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df pvec = Vec3Df::crossProduct(dest, v0v2);
+
+    // If determinant == 0 then no intersection takes place.
+    float determinent = Vec3Df::dotProduct(v0v1, pvec);
+    //std::cout << "NdotR: " << NdotR << std::endl;
+    if (fabs(determinent) == 0.f)
+    	return false;
+
+    Vec3Df tvec = origin - MyMesh.vertices[triangle.v[0]].p;
+    float u = Vec3Df::dotProduct(tvec, pvec) / determinent;
+    if(u < 0.f || u > 1.f)
+    	return false;
+
+    Vec3Df qvec = Vec3Df::crossProduct(tvec, v0v1);
+    float v = Vec3Df::dotProduct(dest, qvec) / determinent;
+    if(v < 0.f || u + v > 1.f)
+            return false;
+
+    distance = Vec3Df::dotProduct(v0v2, qvec) / determinent;
+    if(distance < 0)
+    	return false;
+
+    // Compute intersection point
+    // intersectPoint = origin + distanceIntersectPoint * directionRay
+    hit = origin + distance * dest;
+
+    return true;
+}
+
+void shade( int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
 	level++;
-//	for (int i=0; i < MyLightPositions.size(); ++i)
-//	{
-//
-//	}
+	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
+	{
+		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
+	}
+
+}
+
+void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color )
+{
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	color = material.Kd();
 	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << std::endl;
-}
 
-//Vec3Df computeDirectLight;
+	Triangle triangle3d = MyMesh.triangles[triangleIndex];
+
+	Vec3Df lightDir = lightPosition - hit;
+	float distance = lightDir.getLength();
+	lightDir.normalize();
+	distance = distance * distance;
+
+	//Calculate normal of triangle
+	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+
+	float NdotL = Vec3Df::dotProduct(normal, lightDir);
+	std::cout << "Light intensity: " << NdotL << std::endl;
+}
 
 void yourDebugDraw()
 {
