@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -12,6 +13,7 @@
 #include <GL/glut.h>
 #endif
 #include "raytracing.h"
+
 
 
 //temporary variables
@@ -71,16 +73,9 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
     	float distance = 0.f;
-    	float distance2 = 0.f;
-    	float distance3 = 0.f;
-    	//bool i1 = intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance) & (distance < currDistance);
-        //bool i2 = intersect2(origin, dest, MyMesh.triangles[i], intersectionPoint, distance2) & (distance2 < currDistance);
-    	bool i3 = intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance3) & (distance3 < currDistance);
-       // if( intersect2(origin, dest, MyMesh.triangles[i], intersectionPoint, distance) & (distance < currDistance) )
-        if(i3)
+        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance) & (distance < currDistance) )
         {
-        	std::cout << "distance i1: " << distance << "\ndistance i2: " << distance2 << "\ndistance i3: " << distance3 << "\ntriangleindex: " << i << std::endl;
-        	currDistance = distance3;
+        	currDistance = distance;
             triangleIndex = i;
             hit = intersectionPoint;
             intersected = true;
@@ -160,7 +155,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     Vec3Df qvec = Vec3Df::crossProduct(tvec, v0v1);
     float v = Vec3Df::dotProduct(dest, qvec) / determinent;
     if(v < 0.f || u + v > 1.f)
-            return false;
+    	return false;
 
     distance = Vec3Df::dotProduct(v0v2, qvec) / determinent;
     if(distance < 0)
@@ -175,6 +170,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
 
 void shade( int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
 	level++;
+	color = Vec3Df(0, 0, 0);
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
 		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
@@ -184,9 +180,10 @@ void shade( int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
 
 void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color )
 {
+	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
+	float lightIntensity = 20.f;
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
-	color = material.Kd();
-	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << std::endl;
+	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << "\nns: " << material.Ns() << "\nni: " << material.Ni() << std::endl;
 
 	Triangle triangle3d = MyMesh.triangles[triangleIndex];
 
@@ -199,9 +196,36 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+	normal.normalize();
 
+	// cosine of the angle between the normal and the lightDir.
 	float NdotL = Vec3Df::dotProduct(normal, lightDir);
-	std::cout << "Light intensity: " << NdotL << std::endl;
+	// Can't be negative, if so set to 0.
+	if(NdotL < 0) {
+		NdotL = 0.f;
+	}
+	// D = Id*Kd*cos(a)
+	Vec3Df diffuse = lightColor * lightIntensity * NdotL * material.Kd();
+	diffuse = diffuse / distance;
+	// A = Ia*Ka
+	Vec3Df ambient = lightColor * lightIntensity * material.Ka();
+
+	// blinn phong
+	Vec3Df halfDir = lightDir + MyCameraPosition;
+	halfDir.normalize();
+	float specAngle = Vec3Df::dotProduct(halfDir, normal);
+	Vec3Df specular = Vec3Df(0, 0, 0);
+	if(specAngle > 0 && material.Ks() != Vec3Df(0,0,0)) {
+		double specTerm = std::pow(specAngle, material.Ns());
+		specular = specTerm * material.Ks();
+		specular = specular / distance;
+		std::cout << "Specular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
+	}
+	color = ambient + diffuse + specular;
+
+	std::cout << "Light angle: " << NdotL << "\nDiffuse: " << diffuse
+					<< "\nAmbient: " << ambient << "\nSpecular: " << specular
+					<< "\nColor: " << color << std::endl;
 }
 
 void yourDebugDraw()
