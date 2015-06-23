@@ -17,6 +17,7 @@
 #include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
+#include <time.h>
 
 
 //This is the main application
@@ -37,8 +38,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 300;  // resolution X
-unsigned int WindowSize_Y = 300;  // resolution Y
+unsigned int WindowSize_X = 200;  // resolution X
+unsigned int WindowSize_Y = 200;  // resolution Y
 
 
 
@@ -240,7 +241,7 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(0,WindowSize_Y-1, &origin01, &dest01);
 		produceRay(WindowSize_X-1,0, &origin10, &dest10);
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
-
+		const clock_t starttime = clock();
 		
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
@@ -260,14 +261,14 @@ void keyboard(unsigned char key, int x, int y)
 
 				//launch raytracing for the given ray.
 				Vec3Df rgb = performRayTracing(origin, dest);
-				if(rgb != Vec3Df(0,0,0))
+				if(rgb != Vec3Df(0.4f,0.4f,0.4f))
 					std::cout << "Pixel coordinates: " << y << " x " << x << std::endl;
 				//store the result in an image 
 				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
 			}
 		}
-
 		result.writeImage("result.ppm");
+		std::cout << "Time to finish: " << float( clock () - starttime ) /  CLOCKS_PER_SEC << "s" << std::endl;
 		break;
 	}
 	case 27:     // touche ESC

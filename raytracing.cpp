@@ -32,8 +32,11 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
-	//MyMesh.loadMesh("cube.obj", true);
+	//MyMesh.loadMesh("reflectionTest.obj", true);
+	//MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("macbook pro.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
+	//MyMesh.loadMesh("capsule.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -46,7 +49,7 @@ void init()
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	Vec3Df hit;
-	Vec3Df color;
+	Vec3Df color = Vec3Df(0,0,0);
 	int level = 0;
 	int max = 3;
 	int triangleIndex = 0;
@@ -54,11 +57,10 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	{
 		std::cout << "Intersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
 		shade( level, hit, color, triangleIndex );
-		//color = Vec3Df(1,1,1);
 	}
 	else
 	{
-		color = Vec3Df(0,0,0);
+		color = Vec3Df(0.4f,0.4f,0.4f);
 	}
 	return color;
 }
@@ -68,10 +70,10 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
     float currDistance = 9999.f;
     bool intersected = false;
     Vec3Df intersectionPoint;
+   	float distance = 0.f;
     
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
-    	float distance = 0.f;
         if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance) & (distance < currDistance) )
         {
         	currDistance = distance;
@@ -80,11 +82,7 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
             intersected = true;
         }
     }
-
-    if( intersected )
-    	return true;
-    else
-    	return false;
+    return intersected;
 }
 
 bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & t )
@@ -143,7 +141,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     // If determinant == 0 then no intersection takes place.
     float determinent = Vec3Df::dotProduct(v0v1, pvec);
     //std::cout << "NdotR: " << NdotR << std::endl;
-    if (fabs(determinent) == 0.f)
+    if (determinent == 0.f)
     	return false;
 
     Vec3Df tvec = origin - MyMesh.vertices[triangle.v[0]].p;
@@ -169,10 +167,10 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
 
 void shade( int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
 	level++;
-	color = Vec3Df(0, 0, 0);
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
 		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
+		std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
 	}
 
 }
@@ -182,7 +180,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
 	float lightIntensity = 20.f;
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
-	std::cout << "Color: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << "\nns: " << material.Ns() << "\nni: " << material.Ni() << std::endl;
+	std::cout << "Material: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << "\nns: " << material.Ns() << "\nni: " << material.Ni() << std::endl;
 
 	Triangle triangle3d = MyMesh.triangles[triangleIndex];
 
@@ -220,7 +218,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 		specular = specular / distance;
 		std::cout << "Specular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}
-	color = ambient + diffuse + specular;
+	color += ambient + diffuse + specular;
 
 	std::cout << "Light angle: " << NdotL << "\nDiffuse: " << diffuse
 					<< "\nAmbient: " << ambient << "\nSpecular: " << specular
