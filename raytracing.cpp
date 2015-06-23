@@ -231,16 +231,13 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 
 void yourDebugDraw()
 {
-	glColor3f(0,0,1);
+	glColor3f(0, 0, 1);
 	glBegin(GL_QUADS); // Start drawing a quad primitive
 		glVertex3f(-1.0, -.4, 1.0);
-			//br
-			glVertex3f(1.0, -.4, 1.0);
-			//tr
-			glVertex3f(1.0, -.4, -1.0);
-			//tl
-			glVertex3f(-1.0, -.4, -1.0);
-			glEnd();
+		glVertex3f(1.0, -.4, 1.0);
+		glVertex3f(1.0, -.4, -1.0);
+		glVertex3f(-1.0, -.4, -1.0);
+	glEnd();
 
 	//let's draw the mesh
 	MyMesh.draw();
