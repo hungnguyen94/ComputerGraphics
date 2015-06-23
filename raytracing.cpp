@@ -33,7 +33,7 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cube.obj", true);
@@ -173,8 +173,11 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
 	level++;
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
-		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
-		std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
+        Vec3Df temphit;
+        if(!intersectRay(hit, MyLightPositions[i], temphit, 0, 0, 0)) {
+            computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
+            std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
+        }
 /*		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3 && level < 3) {
 			//Calculate normal of triangle
 			Triangle triangle3d = MyMesh.triangles[triangleIndex];
