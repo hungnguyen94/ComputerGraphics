@@ -39,8 +39,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 300;  // resolution X
-unsigned int WindowSize_Y = 300;  // resolution Y
+unsigned int WindowSize_X = 100;  // resolution X
+unsigned int WindowSize_Y = 100;  // resolution Y
 
 
 
@@ -198,14 +198,32 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 }
 
 
-
+RGBValue colors[200][200];
 
 void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, const unsigned int x, const unsigned int y)
 {
 	//launch raytracing for the given ray.
 	Vec3Df rgb = performRayTracing(origin, dest);
 	//store the result in an image
-	result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+	colors[x][y] = RGBValue(rgb[0], rgb[1], rgb[2]);
+	//result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+}
+
+void writeImage(Image & result) {
+	for (int x = 0; x < 100; x++) {
+		for (int y = 0; y < 100; y++) {
+			RGBValue one = colors[(2 * x)][(2 * y)];
+			RGBValue two = colors[(2 * x) + 1][(2 * y)];
+			RGBValue three = colors[(2 * x)][(2 * y) + 1];
+			RGBValue four = colors[(2 * x) + 1][(2 * y) + 1];
+
+			float red = (one.r + two.r + three.r + four.r) / 4;
+			float green = (one.g + two.g + three.g + four.g) / 4;
+			float blue = (one.b + two.b + three.b + four.b) / 4;
+
+			result.setPixel(x, y, RGBValue(red, blue, green));
+		}
+	}
 }
 
 
@@ -263,9 +281,9 @@ void keyboard(unsigned char key, int x, int y)
 		unsigned int currentThreadCount = 0;
 		const unsigned int maxThreadCount = 10;
 
-		for (unsigned int y=0; y<WindowSize_Y;++y)
+		for (unsigned int y=0; y<(WindowSize_Y*2);++y)
 		{
-			for (unsigned int x=0; x<WindowSize_X;++x)
+			for (unsigned int x=0; x<(WindowSize_X*2);++x)
 			{
 				std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
 						<< WindowSize_X << "        \r";
@@ -303,6 +321,7 @@ void keyboard(unsigned char key, int x, int y)
 		// Wait for all threads to finish before writing to image.
 		for (std::thread &t : threads)
 			t.join();
+		writeImage(std::ref(result));
 		std::cout << "Time to finish: " << float( clock () - starttime ) /  CLOCKS_PER_SEC << "s" << std::endl;
 		std::cout << "Divide by amount of CPU cores." << std::endl;
 		result.writeImage("result.ppm");
