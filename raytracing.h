@@ -24,7 +24,7 @@ void init();
 //it is defined elsewhere
 void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max, int & triangleIndex);
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex);
 
 bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance );
 bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance );
@@ -33,8 +33,10 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
 
 void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color );
 
+void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex );
+
 //your main function to rewrite
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
+void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, Vec3Df & color);
 
 //a function to debug --- you can draw in OpenGL here
 void yourDebugDraw();

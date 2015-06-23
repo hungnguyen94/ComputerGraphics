@@ -21,6 +21,8 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
+// Set to true when you want printed info
+const bool verbose = false;
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -33,12 +35,13 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cube.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
+	MyMesh.loadMesh("sphereonplane.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -48,26 +51,30 @@ void init()
 }
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
+void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, Vec3Df & color)
 {
+	// Stop if the maxlevel is reached
+	if(level <= 0)
+		return;
+
 	Vec3Df hit;
-	Vec3Df color = Vec3Df(0,0,0);
-	int level = 0;
-	int max = 3;
 	int triangleIndex = 0;
-	if( intersectRay(origin, dest, hit, level, max, triangleIndex) )
+	if( intersectRay(origin, dest, hit, --level, triangleIndex) )
 	{
-		std::cout << "Intersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
-		shade( origin, dest, level, hit, color, triangleIndex );
+		if(verbose)
+			std::cout << "\nIntersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
+		// Calculate the color of the intersected triangle.
+		shade( origin, dest, --level, hit, color, triangleIndex );
 	}
 	else
 	{
-		color = Vec3Df(0.4f,0.4f,0.4f);
+		// Return the background color if there's no intersection.
+		color += Vec3Df(0.4f,0.4f,0.4f);
 	}
-	return color;
+	return;
 }
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max, int & triangleIndex)
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex)
 {
     float currDistance = 9999.f;
     bool intersected = false;
@@ -170,27 +177,31 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
 }
 
 void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
-	level++;
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
 		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
-		std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
-/*		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3 && level < 3) {
-			//Calculate normal of triangle
-			Triangle triangle3d = MyMesh.triangles[triangleIndex];
-			Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
-			Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
-			Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
-			normal.normalize();
-			float reflected = 2.0f * Vec3Df::dotProduct(MyCameraPosition, normal);
-			Vec3Df newDest = dest - reflected * normal;
-			Vec3Df newHit;
-			int newTriangleIndex;
-			if( intersectRay(hit, newDest, newHit, level, 3, newTriangleIndex) ) {
-				shade(hit, newDest, level, newHit, color, newTriangleIndex);
-			}
-		}*/
+		if(verbose)
+			std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
+//		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3 && level < 3) {
+//			computeReflectedLight(origin, dest, level, hit, color, triangleIndex);
+//		}
 	}
+
+}
+
+void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex  )
+{
+	//Calculate normal of triangle
+	Triangle triangle3d = MyMesh.triangles[triangleIndex];
+	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+	normal.normalize();
+
+	float reflected = 2.0f * Vec3Df::dotProduct(MyCameraPosition, normal);
+	Vec3Df newDest = dest - reflected * normal;
+	Vec3Df newHit;
+	int newTriangleIndex;
 
 }
 
@@ -199,7 +210,8 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
 	float lightIntensity = 20.f;
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
-	std::cout << "Material: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << "\nns: " << material.Ns() << "\nni: " << material.Ni() << std::endl;
+	if(verbose)
+		std::cout << "\nMaterial: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << "\nns: " << material.Ns() << "\nni: " << material.Ni() << std::endl;
 
 	Triangle triangle3d = MyMesh.triangles[triangleIndex];
 
@@ -231,13 +243,14 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	float specAngle = Vec3Df::dotProduct(halfDir, normal);
 	Vec3Df specular = Vec3Df(0, 0, 0);
 	if(specAngle > 0 && material.Ks() != Vec3Df(0,0,0)) {
-		double specTerm = std::pow(specAngle, material.Ns());
+		double specTerm = std::pow(specAngle, 2.0f* material.Ns());
 		specular = specTerm * material.Ks();
-		std::cout << "Specular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
+		if(verbose)
+			std::cout << "\nSpecular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}
 	color += ambient + (diffuse + specular) / distance;
-
-	std::cout << "Light angle: " << NdotL << "\nDiffuse: " << diffuse
+	if(verbose)
+		std::cout << "\nLight angle: " << NdotL << "\nDiffuse: " << diffuse
 					<< "\nAmbient: " << ambient << "\nSpecular: " << specular
 					<< "\nColor: " << color << std::endl;
 }

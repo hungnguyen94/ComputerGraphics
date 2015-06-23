@@ -19,6 +19,7 @@
 #include "imageWriter.h"
 #include <time.h>
 #include <thread>
+#include <mutex>
 
 
 //This is the main application
@@ -42,7 +43,7 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 300;  // resolution X
 unsigned int WindowSize_Y = 300;  // resolution Y
 
-
+std::mutex mutex;
 
 
 /**
@@ -197,19 +198,52 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 		dest->p[2]=float(z);
 }
 
-
-
-
-void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, const unsigned int x, const unsigned int y)
+void threadedRayTracingTwo(const int y, const int WindowSize_X, const int WindowSize_Y,
+		const Vec3Df origin00, const Vec3Df origin01, const Vec3Df origin10,
+		const Vec3Df origin11, const Vec3Df dest00, const Vec3Df dest01,
+		const Vec3Df dest10, const Vec3Df dest11, Image & result)
 {
-	//launch raytracing for the given ray.
-	Vec3Df rgb = performRayTracing(origin, dest);
-	//store the result in an image
-	result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+	for (unsigned int x=0; x<WindowSize_X;++x)
+	{
+		//std::lock_guard<std::mutex> guard(mutex);
+		std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
+			<< WindowSize_X << "                \r";
+		std::cout.flush();
+
+		//produce the rays for each pixel, by interpolating
+		//the four rays of the frustum corners.
+		float xscale=1.0f-float(x)/(WindowSize_X-1);
+		float yscale=1.0f-float(y)/(WindowSize_Y-1);
+
+		Vec3Df origin, dest;
+		origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
+			(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
+		dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
+			(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+
+		int maxLevel = 7;
+		//launch raytracing for the given ray.
+		Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
+		performRayTracing(origin, dest, maxLevel, rgb);
+		mutex.lock();
+		//store the result in an image
+		result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+		mutex.unlock();
+	}
 }
 
-
-
+// Run this in a thread so we can parallelize it
+void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, const unsigned int x, const unsigned int y)
+{
+	//mutex.lock();
+	int maxLevel = 7;
+	//launch raytracing for the given ray.
+	Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
+	performRayTracing(origin, dest, maxLevel, rgb);
+	//store the result in an image
+	result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+	//mutex.unlock();
+}
 
 // react to keyboard input
 void keyboard(unsigned char key, int x, int y)
@@ -238,7 +272,6 @@ void keyboard(unsigned char key, int x, int y)
 	{
 		//Pressing r will launch the raytracing.
 		cout<<"Raytracing"<<endl;
-				
 
 		//Setup an image with the size of the current image.
 		Image result(WindowSize_X,WindowSize_Y);
@@ -258,53 +291,41 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
 
 		const clock_t starttime = clock();
-
+		// List of threads so we can access them easily
 		std::vector<std::thread> threads;
 		unsigned int currentThreadCount = 0;
-		const unsigned int maxThreadCount = 10;
+
+		// Get number of CPU cores
+		unsigned int nthreads = std::thread::hardware_concurrency();
+		if(nthreads <= 0)
+			nthreads = 1;
+
+		// Specify number of threads to run in.
+		const unsigned int maxThreadCount = nthreads * 1;
+
+		std::cout << "Raytracing with " << maxThreadCount << " threads" << std::endl;
 
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
-			for (unsigned int x=0; x<WindowSize_X;++x)
-			{
-				std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
-						<< WindowSize_X << "        \r";
-				std::cout.flush();
-				//produce the rays for each pixel, by interpolating 
-				//the four rays of the frustum corners.
-				float xscale=1.0f-float(x)/(WindowSize_X-1);
-				float yscale=1.0f-float(y)/(WindowSize_Y-1);
-
-				origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
-					(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
-				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
-					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
-
-				// Add the thread to the vector so we can access it.
-				threads.push_back(std::thread( threadedRayTracing, origin, dest, std::ref(result), x, y));
-//				threadedRayTracing(origin, dest, std::ref(result), x, y);
-				currentThreadCount++;
-				// Wait for all running threads to finish and remove them from the list.
-				if(currentThreadCount > maxThreadCount) {
-					for(std::thread &t : threads) {
-						t.join();
-					}
-					threads.clear();
-					currentThreadCount = 0;
+			//threadedRayTracingTwo( y, WindowSize_X, WindowSize_Y, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result));
+			threads.push_back(std::thread( threadedRayTracingTwo, y, WindowSize_X, WindowSize_Y, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result)));
+			currentThreadCount++;
+			// Wait for all running threads to finish and remove them from the list.
+			if(currentThreadCount >= maxThreadCount) {
+				for(std::thread &t : threads) {
+					t.join();
 				}
-/*				//launch raytracing for the given ray.
-				Vec3Df rgb = performRayTracing(origin, dest);
-				if(rgb != Vec3Df(0.4f,0.4f,0.4f))
-					std::cout << "Pixel coordinates: " << y << " x " << x << std::endl;
-				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));*/
+				threads.clear();
+				currentThreadCount = 0;
 			}
 		}
 		// Wait for all threads to finish before writing to image.
-		for (std::thread &t : threads)
+		for (std::thread &t : threads) {
 			t.join();
-		std::cout << "Time to finish: " << float( clock () - starttime ) /  CLOCKS_PER_SEC << "s" << std::endl;
-		std::cout << "Divide by amount of CPU cores." << std::endl;
+		}
+		float duration = float(clock () - starttime) /  CLOCKS_PER_SEC;
+		std::cout << "\nTotal CPU time: " << duration << "s" << std::endl;
+		std::cout << "\nTime is not accurate. Appoximated time by dividing by amount of CPU cores: " << duration / nthreads << "s" << std::endl;
 		result.writeImage("result.ppm");
 		break;
 	}
