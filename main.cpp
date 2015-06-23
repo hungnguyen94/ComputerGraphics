@@ -227,7 +227,7 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case '=':
 		tb_matrix[14] += 0.1;
-        break;
+		break;
     case '+':
         tb_matrix[14] += 0.1;
         break;
