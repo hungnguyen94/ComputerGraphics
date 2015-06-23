@@ -233,10 +233,10 @@ void yourDebugDraw()
 {
 	glColor3f(0, 0, 1);
 	glBegin(GL_QUADS); // Start drawing a quad primitive
-		glVertex3f(-1.0, -.4, 1.0);
-		glVertex3f(1.0, -.4, 1.0);
-		glVertex3f(1.0, -.4, -1.0);
-		glVertex3f(-1.0, -.4, -1.0);
+		for(int i = 0; i < plane.size();++i)
+		{
+			glVertex3f(plane[i][0], plane[i][1],plane[i][2]);
+		}
 	glEnd();
 
 	//let's draw the mesh
