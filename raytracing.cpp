@@ -21,7 +21,7 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 std::vector<Vec3Df> plane = { Vec3Df(-1.0,-0.4,1.0), Vec3Df(1.0,-0.4,1.0), Vec3Df(1.0,-0.4,-1.0), Vec3Df(-1.0, -0.4, -1.0) };
-
+std::vector<Vec3Df> plane1 = { Vec3Df(0.f, 0.f, 0.f),  Vec3Df(0.f, 1.f, 0.f) };
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -83,10 +83,12 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
 
     // Intersection with planes
 
+    Vec3Df p = plane1[0];
+    Vec3Df n = plane1[1];
 
 
 
-	return false;
+    return false;
 }
 
 bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & t )
