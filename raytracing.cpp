@@ -35,8 +35,9 @@ void init()
 	//MyMesh.loadMesh("reflectionTest.obj", true);
 	//MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
-	MyMesh.loadMesh("cube.obj", true);
+	//MyMesh.loadMesh("cube.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
+	MyMesh.loadMesh("Rock1.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -56,7 +57,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	if( intersectRay(origin, dest, hit, level, max, triangleIndex) )
 	{
 		std::cout << "Intersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
-		shade( level, hit, color, triangleIndex );
+		shade( origin, dest, level, hit, color, triangleIndex );
 	}
 	else
 	{
@@ -165,12 +166,27 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     return true;
 }
 
-void shade( int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
+void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
 	level++;
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
 		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
 		std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
+/*		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3 && level < 3) {
+			//Calculate normal of triangle
+			Triangle triangle3d = MyMesh.triangles[triangleIndex];
+			Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+			Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+			Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+			normal.normalize();
+			float reflected = 2.0f * Vec3Df::dotProduct(MyCameraPosition, normal);
+			Vec3Df newDest = dest - reflected * normal;
+			Vec3Df newHit;
+			int newTriangleIndex;
+			if( intersectRay(hit, newDest, newHit, level, 3, newTriangleIndex) ) {
+				shade(hit, newDest, level, newHit, color, newTriangleIndex);
+			}
+		}*/
 	}
 
 }

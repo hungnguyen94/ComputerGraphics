@@ -29,7 +29,7 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
 bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance );
 bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance );
 
-void shade( int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex);
+void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex);
 
 void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color );
 
