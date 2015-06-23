@@ -33,8 +33,9 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
+	MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cube.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	MyMesh.computeVertexNormals();
@@ -144,17 +145,19 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     if (determinent == 0.f)
     	return false;
 
+    float invDeterminent = 1 / determinent;
+
     Vec3Df tvec = origin - MyMesh.vertices[triangle.v[0]].p;
-    float u = Vec3Df::dotProduct(tvec, pvec) / determinent;
+    float u = Vec3Df::dotProduct(tvec, pvec) * invDeterminent;
     if(u < 0.f || u > 1.f)
     	return false;
 
     Vec3Df qvec = Vec3Df::crossProduct(tvec, v0v1);
-    float v = Vec3Df::dotProduct(dest, qvec) / determinent;
+    float v = Vec3Df::dotProduct(dest, qvec) * invDeterminent;
     if(v < 0.f || u + v > 1.f)
     	return false;
 
-    distance = Vec3Df::dotProduct(v0v2, qvec) / determinent;
+    distance = Vec3Df::dotProduct(v0v2, qvec) * invDeterminent;
     if(distance < 0)
     	return false;
 
@@ -203,7 +206,6 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	}
 	// D = Id*Kd*cos(a)
 	Vec3Df diffuse = lightColor * lightIntensity * NdotL * material.Kd();
-	diffuse = diffuse / distance;
 	// A = Ia*Ka
 	Vec3Df ambient = lightColor * lightIntensity * material.Ka();
 
@@ -215,10 +217,9 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	if(specAngle > 0 && material.Ks() != Vec3Df(0,0,0)) {
 		double specTerm = std::pow(specAngle, material.Ns());
 		specular = specTerm * material.Ks();
-		specular = specular / distance;
 		std::cout << "Specular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}
-	color += ambient + diffuse + specular;
+	color += ambient + (diffuse + specular) / distance;
 
 	std::cout << "Light angle: " << NdotL << "\nDiffuse: " << diffuse
 					<< "\nAmbient: " << ambient << "\nSpecular: " << specular

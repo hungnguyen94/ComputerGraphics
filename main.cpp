@@ -259,7 +259,7 @@ void keyboard(unsigned char key, int x, int y)
 
 		std::vector<std::thread> threads;
 		unsigned int currentThreadCount = 0;
-		const unsigned int maxThreadCount = 40;
+		const unsigned int maxThreadCount = 10;
 
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
