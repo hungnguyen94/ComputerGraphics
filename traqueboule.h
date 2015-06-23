@@ -90,7 +90,7 @@ void tbMouseFunc( int button, int state, int x, int y )
     {
         tb_bougerZ = 1;
         tb_ancienX = x;
-        tb_ancienY = y;
+		tb_ancienY = y;
     }
     /* relacher milieu */
     else if( button==GLUT_MIDDLE_BUTTON && state==GLUT_UP )
