@@ -258,10 +258,10 @@ void keyboard(unsigned char key, int x, int y)
 
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
-			std::cout << "Progress: " << y << "/" << WindowSize_Y << std::endl;
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
-
+				std::cout << "Pixel coordinates: " << y << " x " << x << "\r";
+				std::cout.flush();
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
 				float xscale=1.0f-float(x)/(WindowSize_X-1);
@@ -296,6 +296,7 @@ void keyboard(unsigned char key, int x, int y)
 		for (std::thread &t : threads)
 			t.join();
 		std::cout << "Time to finish: " << float( clock () - starttime ) /  CLOCKS_PER_SEC << "s" << std::endl;
+		std::cout << "Divide by amount of CPU cores." << std::endl;
 		result.writeImage("result.ppm");
 		break;
 	}
