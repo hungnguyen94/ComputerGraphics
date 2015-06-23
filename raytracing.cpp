@@ -66,9 +66,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, const int & max, int & triangleIndex)
 {
     float currDistance = 9999.f;
-    bool intersected = false;
     Vec3Df intersectionPoint;
-    
+    // Intersection with triangles
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
     	float distance = 0.f;
@@ -77,14 +76,16 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
         	currDistance = distance;
             triangleIndex = i;
             hit = intersectionPoint;
-            intersected = true;
+            return true;
         }
     }
 
-    if( intersected )
-    	return true;
-    else
-    	return false;
+    // Intersection with planes
+
+
+
+
+	return false;
 }
 
 bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & t )
@@ -229,6 +230,19 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 
 void yourDebugDraw()
 {
+	glColor3f(0,0,1);
+	glBegin(GL_QUADS); // Start drawing a quad primitive
+	glVertex3f(-1.0f, 0.0f, -1.0f); // The top right corner
+	glVertex3f(1.0f, 0.0f, -1.0f); // The top left corner
+	glVertex3f(1.0f, 0.0f, 1.0f); // The bottom left corner
+	glVertex3f(-1.0f, 0.0f, 1.0f); // The bottom right corner
+
+
+
+
+
+
+	glEnd();
 	//draw open gl debug stuff
 	//this function is called every frame
 
