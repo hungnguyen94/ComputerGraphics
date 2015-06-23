@@ -18,6 +18,7 @@
 #include "traqueboule.h"
 #include "imageWriter.h"
 #include <time.h>
+#include <thread>
 
 
 //This is the main application
@@ -38,8 +39,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 200;  // resolution X
-unsigned int WindowSize_Y = 200;  // resolution Y
+unsigned int WindowSize_X = 300;  // resolution X
+unsigned int WindowSize_Y = 300;  // resolution Y
 
 
 
@@ -199,8 +200,15 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 
 
 
-
-
+void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, const unsigned int x, const unsigned int y)
+{
+	//launch raytracing for the given ray.
+	Vec3Df rgb = performRayTracing(origin, dest);
+	if(rgb != Vec3Df(0.4f,0.4f,0.4f))
+		std::cout << "Pixel coordinates: " << y << " x " << x << std::endl;
+	//store the result in an image
+	result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+}
 
 
 
@@ -241,8 +249,13 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(0,WindowSize_Y-1, &origin01, &dest01);
 		produceRay(WindowSize_X-1,0, &origin10, &dest10);
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
+
 		const clock_t starttime = clock();
-		
+
+		std::vector<std::thread> threads;
+		unsigned int currentThreadCount = 0;
+		const unsigned int maxThreadCount = 10;
+
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
 			std::cout << "Progress: " << y << "/" << WindowSize_Y << std::endl;
@@ -259,16 +272,31 @@ void keyboard(unsigned char key, int x, int y)
 				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
 					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
-				//launch raytracing for the given ray.
+				// Add the thread to the vector so we can access it.
+				threads.push_back(std::thread( threadedRayTracing, origin, dest, std::ref(result), x, y));
+//				threadedRayTracing(origin, dest, std::ref(result), x, y);
+				currentThreadCount++;
+				// Wait for all running threads to finish and remove them from the list.
+				if(currentThreadCount > maxThreadCount) {
+					for(std::thread &t : threads) {
+						t.join();
+					}
+					threads.clear();
+					currentThreadCount = 0;
+				}
+/*				//launch raytracing for the given ray.
 				Vec3Df rgb = performRayTracing(origin, dest);
 				if(rgb != Vec3Df(0.4f,0.4f,0.4f))
 					std::cout << "Pixel coordinates: " << y << " x " << x << std::endl;
 				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));*/
 			}
 		}
-		result.writeImage("result.ppm");
+		// Wait for all threads to finish before writing to image.
+		for (std::thread &t : threads)
+			t.join();
 		std::cout << "Time to finish: " << float( clock () - starttime ) /  CLOCKS_PER_SEC << "s" << std::endl;
+		result.writeImage("result.ppm");
 		break;
 	}
 	case 27:     // touche ESC
