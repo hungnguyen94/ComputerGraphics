@@ -24,6 +24,8 @@ std::vector<Vec3Df> plane = { Vec3Df(-1.0,-0.4,1.0), Vec3Df(1.0,-0.4,1.0), Vec3D
 
 // Set to true when you want printed info
 const bool verbose = false;
+std::vector<Vec3Df> plane1 = { Vec3Df(0.f, 0.f, 0.f),  Vec3Df(0.f, 1.f, 0.f) };
+
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -95,6 +97,13 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
     }
     return intersected;
     // Intersection with planes
+
+    Vec3Df p = plane1[0];
+    Vec3Df n = plane1[1];
+
+
+
+    return false;
 
 }
 
