@@ -33,7 +33,7 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	MyMesh.loadMesh("cube.obj", true);
+	MyMesh.loadMesh("sphereonplane.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cube.obj", true);
@@ -174,7 +174,12 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
         Vec3Df temphit;
-        if(!intersectRay(hit, MyLightPositions[i], temphit, 0, 0, 0)) {
+        int max = 0;
+        int tempTI;
+        Vec3Df lightdir = MyLightPositions[i]-hit;
+        lightdir.normalize();
+        Vec3Df hitoffset = hit + lightdir;
+        if(!intersectRay(hitoffset, MyLightPositions[i], temphit, level, max, tempTI)) {
             computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
             std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
