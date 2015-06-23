@@ -225,6 +225,9 @@ void keyboard(unsigned char key, int x, int y)
 	case 'l':
 		MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
 		break;
+	case '=':
+		tb_matrix[14] += 0.1;
+		break;
 	case '+':
 		tb_matrix[14] += 0.1;
 		break;
