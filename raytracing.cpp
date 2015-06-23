@@ -20,6 +20,7 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
+std::vector<Vec3Df> plane = { Vec3Df(-1.0,-0.4,1.0), Vec3Df(1.0,-0.4,1.0), Vec3Df(1.0,-0.4,-1.0), Vec3Df(-1.0, -0.4, -1.0) };
 
 // Set to true when you want printed info
 const bool verbose = false;
