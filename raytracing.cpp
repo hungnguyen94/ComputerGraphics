@@ -13,6 +13,7 @@
 #include <GL/glut.h>
 #endif
 #include "raytracing.h"
+#include "Vec3D.h"
 
 
 //temporary variables
@@ -85,10 +86,15 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
 
     Vec3Df p = plane1[0];
     Vec3Df n = plane1[1];
+    float dotProduct = Vec3Df::dotProduct(dest, n);
+    if (dotProduct < 0.0000001)
+    	return false;
 
+    float k = Vec3Df::dotProduct(n, (p-origin)) / dotProduct;
+    hit = origin + k*dest;
+    std::cout << "plane intersection: (" << hit[0] << "," << hit[1] << "," << hit[2] << ")" << std::endl;
 
-
-    return false;
+    return true;
 }
 
 bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & t )
