@@ -204,8 +204,6 @@ void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, 
 {
 	//launch raytracing for the given ray.
 	Vec3Df rgb = performRayTracing(origin, dest);
-	if(rgb != Vec3Df(0.4f,0.4f,0.4f))
-		std::cout << "Pixel coordinates: " << y << " x " << x << std::endl;
 	//store the result in an image
 	result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
 }
@@ -266,7 +264,8 @@ void keyboard(unsigned char key, int x, int y)
 		{
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
-				std::cout << "Pixel coordinates: " << y << " x " << x << "\r";
+				std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
+						<< WindowSize_X << "        \r";
 				std::cout.flush();
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
