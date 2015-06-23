@@ -205,7 +205,7 @@ void test()
 }
 
 
-void threadedRayTracing(const Vec3Df & origin, const Vec3Df & dest, Image & result, const unsigned int & x, const unsigned int & y)
+void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, const unsigned int x, const unsigned int y)
 {
 	//launch raytracing for the given ray.
 	Vec3Df rgb = performRayTracing(origin, dest);
@@ -258,7 +258,8 @@ void keyboard(unsigned char key, int x, int y)
 		const clock_t starttime = clock();
 
 		std::vector<std::thread> threads;
-		unsigned int threadcount = 0;
+		unsigned int currentThreadCount = 0;
+		const unsigned int maxThreadCount = 40;
 
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 		{
@@ -276,9 +277,18 @@ void keyboard(unsigned char key, int x, int y)
 				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
 					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
-				threads.push_back(std::thread( threadedRayTracing, std::ref(origin), std::ref(dest), std::ref(result), std::ref(x), std::ref(y)));
-				threadcount++;
-
+				// Add the thread to the vector so we can access it.
+				threads.push_back(std::thread( threadedRayTracing, origin, dest, std::ref(result), x, y));
+//				threadedRayTracing(origin, dest, std::ref(result), x, y);
+				currentThreadCount++;
+				// Wait for all running threads to finish and remove them from the list.
+				if(currentThreadCount > maxThreadCount) {
+					for(std::thread &t : threads) {
+						t.join();
+					}
+					threads.clear();
+					currentThreadCount = 0;
+				}
 /*				//launch raytracing for the given ray.
 				Vec3Df rgb = performRayTracing(origin, dest);
 				if(rgb != Vec3Df(0.4f,0.4f,0.4f))
@@ -286,14 +296,12 @@ void keyboard(unsigned char key, int x, int y)
 				//store the result in an image 
 				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));*/
 			}
-			for (std::thread &tz : threads)
-			{
-				tz.join();
-			}
+
 		}
-	/*	for (std::thread &tz : threads)
-			tz.join();*/
-		std::cout << "Time to finish: " << float( clock () - starttime ) /  CLOCKS_PER_SEC << std::endl;
+		// Wait for all threads to finish before writing to image.
+		for (std::thread &t : threads)
+			t.join();
+		std::cout << "Time to finish: " << float( clock () - starttime ) << std::endl;
 		result.writeImage("result.ppm");
 		break;
 	}
