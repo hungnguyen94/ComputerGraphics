@@ -36,13 +36,13 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cubeonplane.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
-	//MyMesh.loadMesh("sphereonplane.obj", true);
+	MyMesh.loadMesh("sphereonplane.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -245,19 +245,25 @@ void yourDebugDraw()
 	
 	//let's draw the lights in the scene as points
 	glPushAttrib(GL_ALL_ATTRIB_BITS); //store all GL attributes
-	glDisable(GL_LIGHTING);
-	glColor3f(1,1,1);
+	glClearDepth(1);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glShadeModel(GL_SMOOTH);
+	glColor3f(1, 0, 0);
+	glEnable(GL_COLOR_MATERIAL);
+
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (int i=0;i<MyLightPositions.size();++i)
+	for (int i = 0; i < MyLightPositions.size(); ++i) {
 		glVertex3fv(MyLightPositions[i].pointer());
+	}
 	glEnd();
 	glPopAttrib();//restore all GL attributes
 	//The Attrib commands maintain the state. 
 	//e.g., even though inside the two calls, we set
 	//the color to white, it will be reset to the previous 
 	//state after the pop.
-
 
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
