@@ -198,6 +198,7 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 		dest->p[2]=float(z);
 }
 
+// Run this in a thread so we can parallelize it
 void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start, const int x_end,
 		const Vec3Df origin00, const Vec3Df origin01, const Vec3Df origin10,
 		const Vec3Df origin11, const Vec3Df dest00, const Vec3Df dest01,
@@ -208,6 +209,7 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 		for (unsigned int x=x_start; x<x_end;++x)
 		{
 			//std::lock_guard<std::mutex> guard(mutex);
+			// Lock mutex to output doesn't get messed up
 			mutex.lock();
 			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
 				<< WindowSize_X << "                \r";
@@ -288,7 +290,6 @@ void keyboard(unsigned char key, int x, int y)
 		Vec3Df origin10, dest10;
 		Vec3Df origin11, dest11;
 		Vec3Df origin, dest;
-
 
 		produceRay(0,0, &origin00, &dest00);
 		produceRay(0,WindowSize_Y-1, &origin01, &dest01);
