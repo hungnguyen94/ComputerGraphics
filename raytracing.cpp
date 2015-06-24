@@ -241,12 +241,13 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 
 void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color )
 {
+	Material material;
 	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
 	float lightIntensity = 20.f;
 	if (triangleIndex > -1) {
 		Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	}else {
-		Material planeMaterial = new Material();
+		Material planeMaterial =  Material();
 		planeMaterial.set_Ka(0.f, 0.f, 0.f);
 		planeMaterial.set_Kd(0.8, 0.f, 0.f);
 		planeMaterial.set_Ks(0.5, 0.5, 0.5);
