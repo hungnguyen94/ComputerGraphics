@@ -14,7 +14,7 @@
 #endif
 #include "raytracing.h"
 
-#define EPSILON 0.00000001f
+#define EPSILON 0.00001f
 
 //temporary variables
 //these are only used to illustrate 
@@ -36,13 +36,14 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cubeonplane.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
 	//MyMesh.loadMesh("sphereonplane.obj", true);
+	MyMesh.loadMesh("twospheres.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -149,11 +150,11 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
-//		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3) {
-//			std::cout << "reflected" << "\r";
-//			std::cout.flush();
-//			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
-//		}
+		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3) {
+			std::cout << "reflected" << "\r";
+			std::cout.flush();
+			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
+		}
 	}
 
 }
