@@ -50,7 +50,7 @@ std::mutex mutex;
 
 
 /**
- * Main function, which is drawing an image (frame) on the screen
+* Main function, which is drawing an image (frame) on the screen
 */
 void drawFrame( )
 {
@@ -60,16 +60,57 @@ void drawFrame( )
 //animation is called for every image on the screen once
 void animate()
 {
-	MyCameraPosition=getCameraPosition();
+	MyCameraPosition = getCameraPosition();
 	glutPostRedisplay();
 }
 
+float light_angle = 0.0;
+float light_angle_speed = 0.03;
+GLfloat ambient_light[3] = { 0.2, 0.2, 0.2 };
+GLfloat light_color[3] = { 1.0, 1.0, 1.0 };
+GLfloat light_position[4] = { 0.0, 2.0, 4.0, 1.0 };
+GLfloat camera_position[4] = { 10.0, 10.0, 10.0, 10.0 };
 
-
-void display(void);
+void reshape();
+void display();
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
 void specialInputForArrowKeys(int key, int x, int y);
+
+// reshape function:
+void reshape(int width, int height) {
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	float aspect_ratio = float(width) / float(height);
+	float field_of_view = 60.0;
+	gluPerspective(field_of_view, aspect_ratio, 0.1, 30.0);
+	glViewport(0, 0, width, height);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+// display function:
+void display() {
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glTranslatef(light_position[0], light_position[1], light_position[2]);
+	MyCameraPosition = getCameraPosition();
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	//activate the light following the camera
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_COLOR_MATERIAL);
+	int xcam = MyLightPositions.back().p[0];
+	int ycam = MyLightPositions.back().p[1];
+	int zcam = MyLightPositions.back().p[2];
+	int LightPos[4] = { xcam, ycam, zcam, 0 };
+	glLightiv(GL_LIGHT0, GL_POSITION, LightPos);
+	glLoadIdentity();
+	tbVisuTransform(); // init trackball
+	drawFrame();    //actually draw
+	glutSwapBuffers();//glut internal switch
+	glPopAttrib();//return to old GL state
+}
 
 /**
  * Main Programme
@@ -154,31 +195,31 @@ int main(int argc, char** argv)
  * you can SKIP AHEAD TO THE KEYBOARD FUNCTION
  */
 //what to do before drawing an image
- void display(void)
-{
-	glPushAttrib(GL_ALL_ATTRIB_BITS);//store GL state
-    // Effacer tout
-    glClear( GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT); // clear image
-    
-    glLoadIdentity();  
-
-    tbVisuTransform(); // init trackball
-
-    drawFrame( );    //actually draw
-
-    glutSwapBuffers();//glut internal switch
-	glPopAttrib();//return to old GL state
-}
-//Window changes size
-void reshape(int w, int h)
-{
-    glViewport(0, 0, (GLsizei) w, (GLsizei) h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    //glOrtho (-1.1, 1.1, -1.1,1.1, -1000.0, 1000.0);
-    gluPerspective (50, (float)w/h, 0.01, 10);
-    glMatrixMode(GL_MODELVIEW);
-}
+// void display(void)
+//{
+//	glPushAttrib(GL_ALL_ATTRIB_BITS);//store GL state
+//    // Effacer tout
+//    glClear( GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT); // clear image
+//
+//    glLoadIdentity();
+//
+//    tbVisuTransform(); // init trackball
+//
+//    drawFrame( );    //actually draw
+//
+//    glutSwapBuffers();//glut internal switch
+//	glPopAttrib();//return to old GL state
+//}
+////Window changes size
+//void reshape(int w, int h)
+//{
+//    glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    //glOrtho (-1.1, 1.1, -1.1,1.1, -1000.0, 1000.0);
+//    gluPerspective (50, (float)w/h, 0.01, 10);
+//    glMatrixMode(GL_MODELVIEW);
+//}
 
 
 //transform the x, y position on the screen into the corresponding 3D world position
