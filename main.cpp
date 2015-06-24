@@ -41,8 +41,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 500;  // resolution X
-unsigned int WindowSize_Y = 500;  // resolution Y
+unsigned int WindowSize_X = 400;  // resolution X
+unsigned int WindowSize_Y = 400;  // resolution Y
 
 std::mutex mutex;
 
@@ -67,6 +67,7 @@ void animate()
 void display(void);
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
+void specialInputForArrowKeys(int key, int x, int y);
 
 /**
  * Main Programme
@@ -120,9 +121,11 @@ int main(int argc, char** argv)
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutDisplayFunc(display);
+    glutSpecialFunc(specialInputForArrowKeys);
     glutMouseFunc(tbMouseFunc);    // trackball
     glutMotionFunc(tbMotionFunc);  // uses mouse
     glutIdleFunc( animate);
+
 
 
 	init();
@@ -251,6 +254,27 @@ void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, 
 	//store the result in an image
 	result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
 	//mutex.unlock();
+}
+
+// Move camera with arrow keys
+void specialInputForArrowKeys(int key, int x, int y)
+{
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		tb_matrix[13] -= 0.1;
+		break;
+	case GLUT_KEY_DOWN:
+		tb_matrix[13] += 0.1;
+		break;
+	case GLUT_KEY_LEFT:
+		tb_matrix[12] += 0.1;
+		break;
+	case GLUT_KEY_RIGHT:
+		tb_matrix[12] -= 0.1;
+		break;
+	}
+	glutPostRedisplay();
 }
 
 // react to keyboard input
