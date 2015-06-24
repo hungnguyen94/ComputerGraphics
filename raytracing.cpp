@@ -441,6 +441,18 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	}
 }
 
+// Bounding Box class
+class Box {
+public:
+    Box(const Vec3Df &min, const Vec3Df &max) {
+        bounds[0] = min;
+        bounds[1] = max;
+    }
+    bool intersect(const Vec3Df & origin, const Vec3Df & dest) const;
+    Vec3Df bounds[2];
+    
+};
+
 void computeBoundingBoxes()
 {
 	for (unsigned int i = 0; i < MyMesh.vertices.size(); i++)
@@ -464,22 +476,14 @@ void computeBoundingBoxes()
             max_z = MyMesh.vertices[i].p[2];
         }
 	} //http://www.cs.utah.edu/~awilliam/box/
+    
+    Vec3Df minvertex = Vec3Df(min_x, min_y, min_z);
+    Vec3Df maxvertex = Vec3Df(max_x, max_y, max_z);
+    Box(minvertex, maxvertex);
 }
 
-// Bounding Box class
-class Box {
-	public:
-		Box(const Vec3Df &min, const Vec3Df &max) {
-			bounds[0] = min;
-			bounds[1] = max;
-		}
-		bool intersect(const Vec3Df & origin, const Vec3Df & dest, float t0, float t1) const;
-		Vec3Df bounds[2];
-
-};
-
-bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest, float t0, float t1) {
-    float tmin, tmax, tymin, tx_min, tx_max, ty_min, ty_max, tz_min, tz_max, tzmin, tzmax;
+bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
+    float tx_min, tx_max, ty_min, ty_max, tz_min, tz_max;
     
     //1
     //We hebben die max_x,y,z en min_x,y,z dus nodig uit die methode hierboven.
@@ -505,7 +509,7 @@ bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest, float t0, floa
     
     //Find t_in and t_out
     if (ty_min > tx_min) {
-        tmin = tymin;
+        tx_min = ty_min;
     }
     if (ty_max < tx_max) {
         tx_max = ty_max;
@@ -525,14 +529,15 @@ bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest, float t0, floa
     // Geloof dat we dit eruit kunnen gooien. t0,t1 is namelijk het interval
     // van valid hits. Maar dat interval is volgens mij al in onze intersec geregeld.
     // Staat verder ook niet in de slides.
-    if (tz_min > tx_min) {
-        tmin = tzmin;
-    }
-    if (tzmax < tmax) {
-        tmax = tzmax;
-    }
-    return ( (tmin < t1) && (tmax > t0) );
-    //Dus ik denk hier gewoon return true;
+    //if (tz_min > tx_min) {
+    //tmin = tzmin;
+    //}
+    //if (tz_max < tx_max) {
+    //tmax = tzmax;
+    //}
+    //return ( (tmin < t1) && (tmax > t0) );
+    
+    return true;
 }
 
 
