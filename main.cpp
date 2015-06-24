@@ -20,6 +20,7 @@
 #include <time.h>
 #include <thread>
 #include <mutex>
+#include <algorithm>
 
 
 //This is the main application
