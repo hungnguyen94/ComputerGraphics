@@ -468,8 +468,12 @@ void computeBoundingBoxes()
 bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
     float tx_min, tx_max, ty_min, ty_max, tz_min, tz_max;
     
+    //1
     //We hebben die max_x,y,z en min_x,y,z dus nodig uit die methode hierboven.
     //Privates ervan maken en dan memoryreferences gebruiken?
+    
+    //2
+    // Die gast gebruikt by zn t, ty, tzmax "1 - de rest", snap niet waarom.
     
     //ray x-coordinate of close intersectionpoint
     tx_min = ((min_x - origin.p[0]) / dest.p[0]);
@@ -504,6 +508,7 @@ bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
         return false;
     }
     
+    //3
     // Geloof dat we dit eruit kunnen gooien. t0,t1 is namelijk het interval
     // van valid hits. Maar dat interval is volgens mij al in onze intersec geregeld.
     // Staat verder ook niet in de slides.
