@@ -142,7 +142,7 @@ bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tr
     return true;
 }
 
-bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance )
+bool intersect(const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance);
 
 bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance, Vec3Df & hitnormal)
 {
@@ -442,7 +442,7 @@ void computeBoundingBoxes()
 	float max_y = -999999.f;
 	float max_z = -999999.f;
 
-	for (unsigned int i = 0; i < vertices.size(); i++)
+	for (unsigned int i = 0; i < MyMesh.vertices.size(); i++)
 	{
         if (MyMesh.vertices[i].p[0] < min_x) {
             min_x = MyMesh.vertices[i].p[0];
@@ -465,7 +465,19 @@ void computeBoundingBoxes()
 	} //http://www.cs.utah.edu/~awilliam/box/
 }
 
-bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
+// Bounding Box class
+class Box {
+	public:
+		Box(const Vec3Df &min, const Vec3Df &max) {
+			bounds[0] = min;
+			bounds[1] = max;
+		}
+		bool intersect(const Vec3Df & origin, const Vec3Df & dest, float t0, float t1) const;
+		Vec3Df bounds[2];
+
+};
+
+bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest, float t0, float t1) {
     float tx_min, tx_max, ty_min, ty_max, tz_min, tz_max;
     
     //1
