@@ -57,14 +57,14 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 	if(level <= 0)
 		return;
 
-	Vec3Df hit;
+	Vec3Df hit, hitnormal;
 	int triangleIndex = 0;
-	if( intersectRay(origin, dest, hit, --level, triangleIndex) )
+	if( intersectRay(origin, dest, hit, --level, triangleIndex, hitnormal) )
 	{
 		if(verbose)
 			std::cout << "\nIntersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
 		// Calculate the color of the intersected triangle.
-		shade( origin, dest, --level, hit, color, triangleIndex );
+		shade( origin, dest, --level, hit, color, triangleIndex, hitnormal);
 	}
 	else
 	{
@@ -75,73 +75,28 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 	return;
 }
 
-bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex)
+bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex, Vec3Df & hitnormal)
 {
     float currDistance = 9999.f;
     bool intersected = false;
-    Vec3Df intersectionPoint;
+    Vec3Df intersectionPoint, intersectionNormal;
     float distance = 0.f;
     
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
-        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance) & (distance < currDistance) )
+        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance, intersectionNormal) & (distance < currDistance) )
         {
         	currDistance = distance;
             triangleIndex = i;
             hit = intersectionPoint;
+            hitnormal = intersectionNormal;
             intersected = true;
         }
     }
     return intersected;
 }
 
-bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & t )
-{
-    // Compute the normal plane.
-	Vec3Df v0v1 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df v0v2 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df normal = Vec3Df::crossProduct (v0v1, v0v2);
-	//std::cout << "normal: " << normal << "\nnormal2: " << normal2 << std::endl;
-
-    //float area2 = normal.getLength();
-
-    // If determinant == 0 then ray and plane are parallel
-    // And no intersection takes place.
-    float NdotR = Vec3Df::dotProduct(normal, -dest);
-    //std::cout << "NdotR: " << NdotR << std::endl;
-    if (NdotR < 0.1f && NdotR > -0.1f)
-    	return false;
-
-    // Compute distance from the origin to the plane.
-    float d = Vec3Df::dotProduct(normal, MyMesh.vertices[triangle.v[0]].p);
-    //std::cout << "d: " << d << std::endl;
-    // Compute the distance from the origin to the intersection point.
-    t = (Vec3Df::dotProduct(normal, origin) + d) / (NdotR);
-    //std::cout << "t: " << t << std::endl;
-    if(t < 0)
-    	return false;
-
-    // Compute intersection point
-    // intersectPoint = origin + distanceIntersectPoint * directionRay
-    hit = origin + t * dest;
-
-/*    // Test whether point is inside the triangle.
-    Vec3Df edge0 = MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df edge1 = MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[1]].p;
-    Vec3Df edge2 = MyMesh.vertices[triangle.v[0]].p - MyMesh.vertices[triangle.v[2]].p;
-    Vec3Df pv0 = hit - MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df pv1 = hit - MyMesh.vertices[triangle.v[1]].p;
-    Vec3Df pv2 = hit - MyMesh.vertices[triangle.v[2]].p;
-    float dot0 = Vec3Df::dotProduct(normal, Vec3Df::crossProduct(edge0, pv0));
-    float dot1 = 1;//Vec3Df::dotProduct(normal, Vec3Df::crossProduct(edge1, pv1));
-    float dot2 = Vec3Df::dotProduct(normal, Vec3Df::crossProduct(edge2, pv2));
-   // std::cout << "dot0: " << dot0 << "\ndot1: " << dot1 << "\ndot2: " << dot2 << std::endl;
-    if( dot0 > 0 || dot1 > 0 || dot2 > 0 )
-    	return false;*/
-    return true;
-}
-
-bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance )
+bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance, Vec3Df & hitnormal)
 {
     // Compute the normal plane.
 	Vec3Df v0v1 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
@@ -173,21 +128,24 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     // Compute intersection point
     // intersectPoint = origin + distanceIntersectPoint * directionRay
     hit = origin + distance * dest;
+    
+    // Compute interpolated normal of hitpoint
+    hitnormal = MyMesh.vertices[triangle.v[0]].n + (MyMesh.vertices[triangle.v[1]].n - MyMesh.vertices[triangle.v[0]].n) * u + (MyMesh.vertices[triangle.v[2]].n - MyMesh.vertices[triangle.v[0]].n) * v;
 
     return true;
 }
 
-void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
+void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal) {
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
-        Vec3Df temphit;
+        Vec3Df temphit, tempnormal;
         int templevel = 0;
         int tempTI;
         Vec3Df templightdir = MyLightPositions[i]-hit;
         templightdir.normalize();
         Vec3Df hitoffset = hit + templightdir * 0.01;
-        if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI)) {
-            computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
+        if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI, tempnormal)) {
+            computeDirectLight(MyLightPositions[i], hit, triangleIndex, color, hitnormal);
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
@@ -198,7 +156,7 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
 
 }
 
-void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex  )
+void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal)
 {
 	//Calculate normal of triangle
 	Triangle triangle3d = MyMesh.triangles[triangleIndex];
@@ -217,7 +175,7 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 
 }
 
-void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color )
+void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color, Vec3Df & hitnormal)
 {
 	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
 	float lightIntensity = 20.f;
@@ -236,7 +194,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 //	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 //	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 //	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
-	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
+	Vec3Df normal = hitnormal;
 	normal.normalize();
 
 	// cosine of the angle between the normal and the lightDir.
@@ -256,8 +214,8 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	float specAngle = Vec3Df::dotProduct(halfDir, normal);
 	Vec3Df specular = Vec3Df(0, 0, 0);
 	if(specAngle > 0 && material.Ks() != Vec3Df(0,0,0)) {
-		double specTerm = std::pow(specAngle, 2.0f* material.Ns());
-		specular = specTerm * material.Ks();
+		double specTerm = std::pow(specAngle, material.Ns());
+		specular = specTerm * 5.0f * material.Ks();
 		if(verbose)
 			std::cout << "\nSpecular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}
