@@ -39,7 +39,7 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	//MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("D:/workspace/CG/dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	MyMesh.loadMesh("cube.obj", true);
@@ -99,18 +99,20 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
     }
 
     // Intersection with planes
+	/*
     if(intersectPlane(origin, dest, plane, intersectionPoint, distance) && (distance < currDistance))
     {
     	hit = intersectionPoint;
-    	triangleIndex = -1;
+    	//triangleIndex = -1;
     	intersected = true;
     }
-
+	*/
     return intersected;
 }
 
 bool intersectPlane(  const Vec3Df & origin, const Vec3Df & dest, const std::vector<Vec3Df> & plane, Vec3Df & hit, float & distance )
-{
+{	
+
     Vec3Df p = plane[0];
     Vec3Df n = plane[1];
     float dotProduct = Vec3Df::dotProduct(dest, n);

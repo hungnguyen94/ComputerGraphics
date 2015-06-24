@@ -24,9 +24,7 @@
 //#include <thread>
 //#include <mutex>
 #include <algorithm>
-#include "mingw.mutex.h"
-#include "mingw.thread.h"
-#include "mingw.condition_variable.h"
+
 
 
 
