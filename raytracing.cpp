@@ -42,10 +42,10 @@ void init()
 	//MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
-	//MyMesh.loadMesh("cube.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
-	MyMesh.loadMesh("sphereonplane.obj", true);
+	//MyMesh.loadMesh("sphereonplane.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -97,21 +97,32 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
 			intersected = true;
         }
     }
-    return intersected;
-    // Intersection with planes
 
-    Vec3Df p = plane1[0];
-    Vec3Df n = plane1[1];
+    // Intersection with planes
+    if(intersectPlane(origin, dest, plane, intersectionPoint, distance) && (distance < currDistance))
+    {
+    	hit = intersectionPoint;
+    	triangleIndex = -1;
+    	intersected = true;
+    }
+
+    return intersected;
+}
+
+bool intersectPlane(  const Vec3Df & origin, const Vec3Df & dest, const std::vector<Vec3Df> & plane, Vec3Df & hit, float & distance )
+{
+    Vec3Df p = plane[0];
+    Vec3Df n = plane[1];
     float dotProduct = Vec3Df::dotProduct(dest, n);
     if (dotProduct < 0.0000001)
     	return false;
 
     float k = Vec3Df::dotProduct(n, (p-origin)) / dotProduct;
     hit = origin + k*dest;
+    distance = hit.getLength();
     std::cout << "plane intersection: (" << hit[0] << "," << hit[1] << "," << hit[2] << ")" << std::endl;
 
     return true;
-
 }
 
 bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & t )
@@ -232,17 +243,17 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 {
 	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
 	float lightIntensity = 20.f;
-	if (triangleIndex != NULL) {
+	if (triangleIndex > -1) {
 		Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	}else {
-		Material material = new Material();
-		material.set_Ka(0.5, 0.5, 0.5);
-		material.set_Kd(0.5, 0.5, 0.5);
-		material.set_Ks(0.5, 0.5, 0.5);
-		material.set_Ni(0.5);
-		material.set_Ns(0.5);
-		material.set_Tr(0.5);
-		material.set_illum(0.5);
+		Material planeMaterial = new Material();
+		planeMaterial.set_Ka(0.f, 0.f, 0.f);
+		planeMaterial.set_Kd(0.8, 0.f, 0.f);
+		planeMaterial.set_Ks(0.5, 0.5, 0.5);
+		planeMaterial.set_Ni(0.5);
+		planeMaterial.set_Ns(0.5);
+		planeMaterial.set_Tr(0.5);
+		planeMaterial.set_illum(0.5);
 	}
 
 	if(verbose)
