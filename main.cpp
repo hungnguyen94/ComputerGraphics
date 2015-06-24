@@ -41,10 +41,10 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 200;  // resolution X
-unsigned int WindowSize_Y = 200;  // resolution Y
+unsigned int WindowSize_X = 300;  // resolution X
+unsigned int WindowSize_Y = 300;  // resolution Y
 unsigned int threadsMultiplier = 1; // Change amount of threads
-unsigned int maxRecursionLevel = 3; // Max recursion of reflective rays
+unsigned int maxRecursionLevel = 6; // Max recursion of reflective rays
 
 std::mutex mutex;
 
@@ -388,7 +388,7 @@ void keyboard(unsigned char key, int x, int y)
 		float duration = float(clock () - starttime) /  CLOCKS_PER_SEC;
 		std::cout << "\nTotal CPU time: " << duration << "s" << std::endl;
 		std::cout << "\nTime is not accurate. Appoximated time by dividing by amount of CPU cores: " << duration / nthreads << "s" << std::endl;
-		result.writeImage("result.ppm");
+		result.writeImage("refraction.ppm");
 		break;
 	}
 	case 27:     // touche ESC

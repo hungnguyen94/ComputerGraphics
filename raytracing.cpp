@@ -43,7 +43,8 @@ void init()
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
 	//MyMesh.loadMesh("sphereonplane.obj", true);
-	MyMesh.loadMesh("twospheres.obj", true);
+	//MyMesh.loadMesh("twospheres.obj", true);
+	MyMesh.loadMesh("sphereinroomobj.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -170,17 +171,24 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	Vec3Df normal = hitnormal;
 //	normal.normalize();
 
+	// Hoek van inval normaliseren
 	Vec3Df viewDir = hit - origin;
 	viewDir.normalize();
-	float reflectAngle = Vec3Df::dotProduct(normal, viewDir);
-	if(fabs(reflectAngle) < EPSILON)
+	normal.normalize();
+
+
+	float dotNV = 0.7 * (Vec3Df::dotProduct(normal, viewDir));
+	float sqrtNV = sqrt(1 - (0.7 * 0.7)*(1 - ((Vec3Df::dotProduct(normal, viewDir))*(Vec3Df::dotProduct(normal, viewDir)))));
+
+	Vec3Df result = ((dotNV - sqrtNV) * normal) - (0.7 * viewDir);
+	if(sqrtNV < EPSILON)
 		return;
-	Vec3Df reflectVector = viewDir - (2 * normal * reflectAngle);
-	reflectVector.normalize();
+	//Vec3Df reflectVector = viewDir - (2 * normal * result);
+	result.normalize();
 
 
-	std::cout << "reflected angle: " << reflectAngle << std::endl;
-	performRayTracing(hit, reflectVector, level, color);
+	std::cout << "Refracting " << sqrtNV << std::endl;
+	performRayTracing(hit, result, level, color);
 
 }
 
