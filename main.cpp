@@ -44,7 +44,7 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 200;  // resolution X
 unsigned int WindowSize_Y = 200;  // resolution Y
 unsigned int threadsMultiplier = 2; // Change amount of threads
-unsigned int maxRecursionLevel = 1; // Max recursion of reflective rays
+unsigned int maxRecursionLevel = 3; // Max recursion of reflective rays
 
 std::mutex mutex;
 
@@ -71,7 +71,7 @@ GLfloat light_color[3] = { 1.0, 1.0, 1.0 };
 GLfloat light_position[4] = { 0.0, 2.0, 4.0, 1.0 };
 GLfloat camera_position[4] = { 10.0, 10.0, 10.0, 10.0 };
 
-void reshape();
+//void reshape();
 void display();
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
@@ -159,7 +159,6 @@ int main(int argc, char** argv)
     //interpolate vertex colors over the triangles
 	glShadeModel(GL_SMOOTH);
 
-
 	// glut setup... to ignore
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
@@ -168,12 +167,8 @@ int main(int argc, char** argv)
     glutMouseFunc(tbMouseFunc);    // trackball
     glutMotionFunc(tbMotionFunc);  // uses mouse
     glutIdleFunc( animate);
-
-
-
 	init();
 
-    
 	//main loop for glut... this just runs your application
     glutMainLoop();
         
