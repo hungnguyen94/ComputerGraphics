@@ -101,7 +101,7 @@ bool intersect2( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tr
 	Vec3Df v0v1 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df v0v2 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df normal = Vec3Df::crossProduct (v0v1, v0v2);
-	//std::cout << "normal: " << normal << "\nnormal2: " << normal2 << std::endl;
+	std::cout << "normal: " << MyMesh.vertices[triangle.v[1]].p << std::endl;
 
     //float area2 = normal.getLength();
 
@@ -147,6 +147,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
 	Vec3Df v0v1 = MyMesh.vertices[triangle.v[1]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df v0v2 = MyMesh.vertices[triangle.v[2]].p -  MyMesh.vertices[triangle.v[0]].p;
     Vec3Df pvec = Vec3Df::crossProduct(dest, v0v2);
+    std::cout << "PRINTING: " << MyMesh.vertices[triangle.v[1]].p << std::endl;
 
     // If determinant == 0 then no intersection takes place.
     float determinent = Vec3Df::dotProduct(v0v1, pvec);
@@ -420,13 +421,13 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 
 void computeBoundingBoxes()
 {
-	float min_x = FLT_MAX;
-	float min_y = FLT_MAX;
-	float min_z = FLT_MAX;
+    float min_x = -999999.f;
+	float min_y = -999999.f;
+	float min_z = -999999.f;
 
-	float max_x = FLT_MIN;
-	float max_y = FLT_MIN;
-	float max_z = FLT_MIN;
+	float max_x = 999999.f;
+	float max_y = 999999.f;
+	float max_z = 999999.f;
 
 	for (unsigned int i = 0; i < MyMesh.triangles.size(); i++)
 	{
@@ -454,7 +455,8 @@ void computeBoundingBoxes()
 		{
 			max_z = MyMesh.triangles[i].v[2];
 		}
-
 	}
 	//http://www.cs.utah.edu/~awilliam/box/
 }
+
+
