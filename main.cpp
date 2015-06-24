@@ -83,7 +83,7 @@ void reshape(int width, int height) {
 	glLoadIdentity();
 	float aspect_ratio = float(width) / float(height);
 	float field_of_view = 60.0;
-	gluPerspective(field_of_view, aspect_ratio, 0.1, 30.0);
+	gluPerspective(field_of_view, aspect_ratio, 0.1, 300.0);
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -269,7 +269,7 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 			dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
 				(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
-			int maxLevel = maxRecursionLevel;
+			int maxLevel = maxRecursionLevel + 1;
 			//launch raytracing for the given ray.
 			Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
 			performRayTracing(origin, dest, maxLevel, rgb);
