@@ -69,8 +69,8 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 	else
 	{
 		// Return the background color if there's no intersection.
-		//if(color == Vec3Df(0.f,0.f,0.f))
-			//color += Vec3Df(0.4f,0.4f,0.4f);
+//		if(color == Vec3Df(0.f,0.f,0.f))
+//			color += Vec3Df(0.4f,0.4f,0.4f);
 	}
 	return;
 }
@@ -144,13 +144,14 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
         Vec3Df templightdir = MyLightPositions[i]-hit;
         templightdir.normalize();
         Vec3Df hitoffset = hit + templightdir * 0.01;
+        // Check if point is in shadow
         if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI, tempnormal)) {
             computeDirectLight(MyLightPositions[i], hit, triangleIndex, color, hitnormal);
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
 //		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 2) {
-//			computeReflectedLight(origin, dest, level, hit, color, triangleIndex);
+//			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
 //		}
 	}
 
@@ -166,12 +167,18 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
 	normal.normalize();
 
-	float reflected = 2.0f * Vec3Df::dotProduct(MyCameraPosition, normal);
-	Vec3Df newDest = dest - reflected * normal;
+	float reflected = Vec3Df::dotProduct(origin, normal);
+	Vec3Df newDest = origin + (2 * normal * reflected);
+
+    Vec3Df temphit = origin - hit;
+    temphit.normalize();
+    Vec3Df hitoffset = hit + temphit * 0.01;
+
+
 	Vec3Df newHit;
 	int newTriangleIndex;
 	std::cout << "reflected angle: " << reflected << std::endl;
-	performRayTracing(hit, newDest, --level, color);
+	performRayTracing(hitoffset, newDest, --level, color);
 
 }
 
