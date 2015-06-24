@@ -180,9 +180,17 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
 void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex) {
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
-		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
-		if(verbose)
-			std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
+        Vec3Df temphit;
+        int templevel = 0;
+        int tempTI;
+        Vec3Df templightdir = MyLightPositions[i]-hit;
+        templightdir.normalize();
+        Vec3Df hitoffset = hit + templightdir * 0.1;
+        if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI)) {
+            computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
+            if(verbose)
+                std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
+        }
 //		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 2) {
 //			computeReflectedLight(origin, dest, level, hit, color, triangleIndex);
 //		}
