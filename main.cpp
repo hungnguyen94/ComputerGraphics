@@ -41,8 +41,10 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 400;  // resolution X
-unsigned int WindowSize_Y = 400;  // resolution Y
+unsigned int WindowSize_X = 300;  // resolution X
+unsigned int WindowSize_Y = 300;  // resolution Y
+unsigned int threadsMultiplier = 4; // Change amount of threads
+unsigned int maxRecursionLevel = 2; // Max recursion of reflective rays
 
 std::mutex mutex;
 
@@ -231,7 +233,7 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 			dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
 				(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
-			int maxLevel = 7;
+			int maxLevel = maxRecursionLevel;
 			//launch raytracing for the given ray.
 			Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
 			performRayTracing(origin, dest, maxLevel, rgb);
@@ -241,19 +243,6 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 			//mutex.unlock();
 		}
 	}
-}
-
-// Run this in a thread so we can parallelize it
-void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, const unsigned int x, const unsigned int y)
-{
-	//mutex.lock();
-	int maxLevel = 7;
-	//launch raytracing for the given ray.
-	Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
-	performRayTracing(origin, dest, maxLevel, rgb);
-	//store the result in an image
-	result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
-	//mutex.unlock();
 }
 
 // Move camera with arrow keys
@@ -330,7 +319,7 @@ void keyboard(unsigned char key, int x, int y)
 			nthreads = 1;
 
 		// Specify number of threads to run in.
-		const unsigned int maxThreadCount = nthreads * 1;
+		const unsigned int maxThreadCount = nthreads * threadsMultiplier;
 
 		std::cout << "Raytracing with " << maxThreadCount << " threads" << std::endl;
 
