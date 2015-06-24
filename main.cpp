@@ -5,6 +5,7 @@
 #else
 #ifdef _WIN32
 #include <windows.h>
+#include <algorithm>
 #endif
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -20,7 +21,7 @@
 #include <time.h>
 #include <thread>
 #include <mutex>
-#include <algorithm>
+#define M_PI 3.14
 
 
 //This is the main application
@@ -39,20 +40,18 @@ Vec3Df MyCameraPosition;
 std::vector<Vec3Df> MyLightPositions;
 
 //Main mesh 
-Mesh MyMesh; 
+Mesh MyMesh;
 
-unsigned int WindowSize_X = 300;  // resolution X
-unsigned int WindowSize_Y = 300;  // resolution Y
-unsigned int threadsMultiplier = 4; // Change amount of threads
-unsigned int maxRecursionLevel = 2; // Max recursion of reflective rays
+unsigned int WindowSize_X = 200;  // resolution X
+unsigned int WindowSize_Y = 200;  // resolution Y
 
 std::mutex mutex;
 
 
 /**
- * Main function, which is drawing an image (frame) on the screen
+* Main function, which is drawing an image (frame) on the screen
 */
-void drawFrame( )
+void drawFrame()
 {
 	yourDebugDraw();
 }
@@ -60,232 +59,220 @@ void drawFrame( )
 //animation is called for every image on the screen once
 void animate()
 {
-	MyCameraPosition=getCameraPosition();
+	MyCameraPosition = getCameraPosition();
 	glutPostRedisplay();
 }
 
-
+float light_angle = 0.0;
+float light_angle_speed = 0.03;
+GLfloat ambient_light[3] = { 0.2, 0.2, 0.2 };
+GLfloat light_color[3] = { 1.0, 1.0, 1.0 };
+GLfloat light_position[4] = { 0.0, 2.0, 4.0, 1.0 };
+GLfloat camera_position[4] = { 0.0, 0.0, 10.0, 1.0 };
 
 void display(void);
+void reshape();
+void display();
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
-void specialInputForArrowKeys(int key, int x, int y);
 
-/**
- * Main Programme
- */
-int main(int argc, char** argv)
-{
-    glutInit(&argc, argv);
+// reshape function:
+void reshape(int width, int height) {
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	float aspect_ratio = float(width) / float(height);
+	float field_of_view = 60.0;
+	gluPerspective(field_of_view, aspect_ratio, 0.1, 30.0);
+	glViewport(0, 0, width, height);
+	glMatrixMode(GL_MODELVIEW);
+}
 
-    //framebuffer setup
-    glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH );
 
-    // positioning and size of window
-    glutInitWindowPosition(200, 100);
-    glutInitWindowSize(WindowSize_X,WindowSize_Y);
-    glutCreateWindow(argv[0]);	
+// display function:
+void display() {
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //initialize viewpoint
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslatef(0,0,-4);
-    tbInitTransform();     // This is for the trackball, please ignore
-    tbHelp();             // idem
-	MyCameraPosition=getCameraPosition();
+	glTranslatef(light_position[0], light_position[1], light_position[2]);
+
+	MyCameraPosition = getCameraPosition();
+
+	glMatrixMode(GL_MODELVIEW);
+
+	MyCameraPosition = getCameraPosition();
 
 	//activate the light following the camera
-    glEnable( GL_LIGHTING );
-    glEnable( GL_LIGHT0 );
-    glEnable(GL_COLOR_MATERIAL);
-    int LightPos[4] = {0,0,2,0};
-    int MatSpec [4] = {1,1,1,1};
-    glLightiv(GL_LIGHT0,GL_POSITION,LightPos);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_COLOR_MATERIAL);
 
-	//normals will be normalized in the graphics pipeline
-	glEnable(GL_NORMALIZE);
-    //clear color of the background is black.
-	glClearColor (0.0, 0.0, 0.0, 0.0);
+	int xcam = MyLightPositions.back().p[0];
+	int ycam = MyLightPositions.back().p[1];
+	int zcam = MyLightPositions.back().p[2];
+	int LightPos[4] = { xcam, ycam, zcam, 0 };
+	glLightiv(GL_LIGHT0, GL_POSITION, LightPos);
 
-	
-	// Activate rendering modes
-    //activate depth test
-	glEnable( GL_DEPTH_TEST ); 
-    //draw front-facing triangles filled
-	//and back-facing triangles as wires
-    glPolygonMode(GL_FRONT,GL_FILL);
-    glPolygonMode(GL_BACK,GL_LINE);
-    //interpolate vertex colors over the triangles
-	glShadeModel(GL_SMOOTH);
+	glLoadIdentity();
+
+	tbVisuTransform(); // init trackball
+
+	drawFrame();    //actually draw
+
+	glutSwapBuffers();//glut internal switch
+	glPopAttrib();//return to old GL state
+}
+
+
+/**
+* Main Programme
+*/
+int main(int argc, char** argv)
+{
+	glutInit(&argc, argv);
+
+	//framebuffer setup
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+
+	// positioning and size of window
+	glutInitWindowPosition(200, 100);
+	glutInitWindowSize(WindowSize_X, WindowSize_Y);
+	glutCreateWindow(argv[0]);
+
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
 
 
 	// glut setup... to ignore
-    glutReshapeFunc(reshape);
-    glutKeyboardFunc(keyboard);
-    glutDisplayFunc(display);
-    glutSpecialFunc(specialInputForArrowKeys);
-    glutMouseFunc(tbMouseFunc);    // trackball
-    glutMotionFunc(tbMotionFunc);  // uses mouse
-    glutIdleFunc( animate);
-
+	glutReshapeFunc(reshape);
+	glutKeyboardFunc(keyboard);
+	glutDisplayFunc(display);
+	glutMouseFunc(tbMouseFunc);    // trackball
+	glutMotionFunc(tbMotionFunc);  // uses mouse
+	glutIdleFunc(animate);
 
 
 	init();
 
-    
+
 	//main loop for glut... this just runs your application
-    glutMainLoop();
-        
-    return 0;  // execution never reaches this point
-}
+	glutMainLoop();
 
-
-
-
-
-
-
-
-
-
-
-/**
- * OpenGL setup - functions do not need to be changed! 
- * you can SKIP AHEAD TO THE KEYBOARD FUNCTION
- */
-//what to do before drawing an image
- void display(void)
-{
-	glPushAttrib(GL_ALL_ATTRIB_BITS);//store GL state
-    // Effacer tout
-    glClear( GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT); // clear image
-    
-    glLoadIdentity();  
-
-    tbVisuTransform(); // init trackball
-
-    drawFrame( );    //actually draw
-
-    glutSwapBuffers();//glut internal switch
-	glPopAttrib();//return to old GL state
-}
-//Window changes size
-void reshape(int w, int h)
-{
-    glViewport(0, 0, (GLsizei) w, (GLsizei) h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    //glOrtho (-1.1, 1.1, -1.1,1.1, -1000.0, 1000.0);
-    gluPerspective (50, (float)w/h, 0.01, 10);
-    glMatrixMode(GL_MODELVIEW);
+	return 0;  // execution never reaches this point
 }
 
 
 //transform the x, y position on the screen into the corresponding 3D world position
 void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 {
-		int viewport[4];
-		double modelview[16];
-		double projection[16];
-		glGetDoublev(GL_MODELVIEW_MATRIX, modelview); //recuperer matrices
-		glGetDoublev(GL_PROJECTION_MATRIX, projection); //recuperer matrices
-		glGetIntegerv(GL_VIEWPORT, viewport);//viewport
-		int y_new = viewport[3] - y_I;
+	int viewport[4];
+	double modelview[16];
+	double projection[16];
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelview); //recuperer matrices
+	glGetDoublev(GL_PROJECTION_MATRIX, projection); //recuperer matrices
+	glGetIntegerv(GL_VIEWPORT, viewport);//viewport
+	int y_new = viewport[3] - y_I;
 
-		double x, y, z;
-		
-		gluUnProject(x_I, y_new, 0, modelview, projection, viewport, &x, &y, &z);
-		origin->p[0]=float(x);
-		origin->p[1]=float(y);
-		origin->p[2]=float(z);
-		gluUnProject(x_I, y_new, 1, modelview, projection, viewport, &x, &y, &z);
-		dest->p[0]=float(x);
-		dest->p[1]=float(y);
-		dest->p[2]=float(z);
+	double x, y, z;
+
+	gluUnProject(x_I, y_new, 0, modelview, projection, viewport, &x, &y, &z);
+	origin->p[0] = float(x);
+	origin->p[1] = float(y);
+	origin->p[2] = float(z);
+	gluUnProject(x_I, y_new, 1, modelview, projection, viewport, &x, &y, &z);
+	dest->p[0] = float(x);
+	dest->p[1] = float(y);
+	dest->p[2] = float(z);
 }
 
 // Run this in a thread so we can parallelize it
 void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start, const int x_end,
-		const Vec3Df origin00, const Vec3Df origin01, const Vec3Df origin10,
-		const Vec3Df origin11, const Vec3Df dest00, const Vec3Df dest01,
-		const Vec3Df dest10, const Vec3Df dest11, Image & result)
+	const Vec3Df origin00, const Vec3Df origin01, const Vec3Df origin10,
+	const Vec3Df origin11, const Vec3Df dest00, const Vec3Df dest01,
+	const Vec3Df dest10, const Vec3Df dest11, Image & result)
 {
-	for (unsigned int y=y_start; y<y_end;++y)
+	for (unsigned int y = y_start; y<y_end; ++y)
 	{
-		for (unsigned int x=x_start; x<x_end;++x)
+		for (unsigned int x = x_start; x<x_end; ++x)
 		{
 			//std::lock_guard<std::mutex> guard(mutex);
 			// Lock mutex to output doesn't get messed up
-			mutex.lock();
-			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
-				<< WindowSize_X << "                \r";
-			std::cout.flush();
-			mutex.unlock();
+			//mutex.lock();
+			//std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
+			//	<< WindowSize_X << "                \r";
+			//std::cout.flush();
+			//mutex.unlock();
+
+			//Get a console handle
+			//HWND myconsole = GetConsoleWindow();
+			//Get a handle to device context
+			//HDC mydc = GetDC(myconsole);
 
 			//produce the rays for each pixel, by interpolating
 			//the four rays of the frustum corners.
-			float xscale=1.0f-float(x)/(WindowSize_X-1);
-			float yscale=1.0f-float(y)/(WindowSize_Y-1);
+			float xscale = 1.0f - float(x) / (WindowSize_X - 1);
+			float yscale = 1.0f - float(y) / (WindowSize_Y - 1);
 
 			Vec3Df origin, dest;
-			origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
-				(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
-			dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
-				(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+			origin = yscale*(xscale*origin00 + (1 - xscale)*origin10) +
+				(1 - yscale)*(xscale*origin01 + (1 - xscale)*origin11);
+			dest = yscale*(xscale*dest00 + (1 - xscale)*dest10) +
+				(1 - yscale)*(xscale*dest01 + (1 - xscale)*dest11);
 
-			int maxLevel = maxRecursionLevel;
+			int maxLevel = 7;
 			//launch raytracing for the given ray.
 			Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
 			performRayTracing(origin, dest, maxLevel, rgb);
 			//mutex.lock();
 			//store the result in an image
-			result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+
+			//int red = (int)((rgb[0]) * 255);
+			//int green = (int)((rgb[1]) * 255);
+			//int blue = (int)((rgb[2]) * 255);
+
+			//COLORREF COLOR = RGB(red, green, blue);
+
+			//SetPixel(mydc, x, y, COLOR);
+
+			result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
 			//mutex.unlock();
 		}
 	}
 }
 
-// Move camera with arrow keys
-void specialInputForArrowKeys(int key, int x, int y)
+// Run this in a thread so we can parallelize it
+void threadedRayTracing(const Vec3Df origin, const Vec3Df dest, Image & result, const unsigned int x, const unsigned int y)
 {
-	switch (key)
-	{
-	case GLUT_KEY_UP:
-		tb_matrix[13] -= 0.1;
-		break;
-	case GLUT_KEY_DOWN:
-		tb_matrix[13] += 0.1;
-		break;
-	case GLUT_KEY_LEFT:
-		tb_matrix[12] += 0.1;
-		break;
-	case GLUT_KEY_RIGHT:
-		tb_matrix[12] -= 0.1;
-		break;
-	}
-	glutPostRedisplay();
+	//mutex.lock();
+	int maxLevel = 7;
+	//launch raytracing for the given ray.
+	Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
+	performRayTracing(origin, dest, maxLevel, rgb);
+	//store the result in an image
+	result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
+	//mutex.unlock();
 }
 
 // react to keyboard input
 void keyboard(unsigned char key, int x, int y)
 {
-    printf("key %d pressed at %d,%d\n",key,x,y);
-    fflush(stdout);
-    switch (key)
-    {
-	//add/update a light based on the camera position.
+	printf("key %d pressed at %d,%d\n", key, x, y);
+	fflush(stdout);
+	switch (key)
+	{
+		//add/update a light based on the camera position.
 	case 'L':
 		MyLightPositions.push_back(getCameraPosition());
 		break;
 	case 'l':
-		MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
+		MyLightPositions[MyLightPositions.size() - 1] = getCameraPosition();
 		break;
 	case '=':
 		tb_matrix[14] += 0.1;
 		break;
-    case '+':
-        tb_matrix[14] += 0.1;
-        break;
+	case '+':
+		tb_matrix[14] += 0.1;
+		break;
 	case '-':
 		tb_matrix[14] -= 0.1;
 		break;
@@ -293,8 +280,8 @@ void keyboard(unsigned char key, int x, int y)
 	{
 		//Pressing r will launch the raytracing.
 		//Setup an image with the size of the current image.
-		Image result(WindowSize_X,WindowSize_Y);
-		
+		Image result(WindowSize_X, WindowSize_Y);
+
 		//produce the rays for each pixel, by first computing
 		//the rays for the corners of the frustum.
 		Vec3Df origin00, dest00;
@@ -303,10 +290,10 @@ void keyboard(unsigned char key, int x, int y)
 		Vec3Df origin11, dest11;
 		Vec3Df origin, dest;
 
-		produceRay(0,0, &origin00, &dest00);
-		produceRay(0,WindowSize_Y-1, &origin01, &dest01);
-		produceRay(WindowSize_X-1,0, &origin10, &dest10);
-		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
+		produceRay(0, 0, &origin00, &dest00);
+		produceRay(0, WindowSize_Y - 1, &origin01, &dest01);
+		produceRay(WindowSize_X - 1, 0, &origin10, &dest10);
+		produceRay(WindowSize_X - 1, WindowSize_Y - 1, &origin11, &dest11);
 
 		const clock_t starttime = clock();
 		// List of threads so we can access them easily
@@ -315,11 +302,11 @@ void keyboard(unsigned char key, int x, int y)
 
 		// Get number of CPU cores
 		unsigned int nthreads = std::thread::hardware_concurrency();
-		if(nthreads <= 0)
+		if (nthreads <= 0)
 			nthreads = 1;
 
 		// Specify number of threads to run in.
-		const unsigned int maxThreadCount = nthreads * threadsMultiplier;
+		const unsigned int maxThreadCount = nthreads * 1;
 
 		std::cout << "Raytracing with " << maxThreadCount << " threads" << std::endl;
 
@@ -330,10 +317,10 @@ void keyboard(unsigned char key, int x, int y)
 		unsigned int y_start = 0;
 		unsigned int y_end = WindowSize_Y; //threadYRenderSize;
 
-		// Threads render vertical blocks of X.
-		for( unsigned int i = 0; i < maxThreadCount + 1; i++ ) {
+										   // Threads render vertical blocks of X.
+		for (unsigned int i = 0; i < maxThreadCount + 1; i++) {
 			// Render the pixels in a thread
-			threads.push_back(std::thread( threadedRayTracingTwo, y_start, y_end, x_start, x_end, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result)));
+			threads.push_back(std::thread(threadedRayTracingTwo, y_start, y_end, x_start, x_end, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result)));
 			x_start = (std::min)(x_end, WindowSize_X);
 			x_end = (std::min)(x_end + threadXRenderSize, WindowSize_X);
 			//y_start = std::min(y_end , WindowSize_Y);
@@ -344,21 +331,20 @@ void keyboard(unsigned char key, int x, int y)
 		for (std::thread &t : threads) {
 			t.join();
 		}
-		float duration = float(clock () - starttime) /  CLOCKS_PER_SEC;
+		float duration = float(clock() - starttime) / CLOCKS_PER_SEC;
 		std::cout << "\nTotal CPU time: " << duration << "s" << std::endl;
 		std::cout << "\nTime is not accurate. Appoximated time by dividing by amount of CPU cores: " << duration / nthreads << "s" << std::endl;
 		result.writeImage("result.ppm");
 		break;
 	}
 	case 27:     // touche ESC
-        exit(0);
-    }
+		exit(0);
+	}
 
-	
+
 	//produce the ray for the current mouse position
 	Vec3Df testRayOrigin, testRayDestination;
 	produceRay(x, y, &testRayOrigin, &testRayDestination);
 
-	yourKeyboardFunc(key,x,y, testRayOrigin, testRayDestination);
+	yourKeyboardFunc(key, x, y, testRayOrigin, testRayDestination);
 }
-
