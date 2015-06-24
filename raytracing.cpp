@@ -22,6 +22,9 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
+std::vector<Vec3Df> plane = { Vec3Df(-1.0, -0.4, 1.0), Vec3Df(1.0, -0.4, 1.0), Vec3Df(1.0, -0.4, -1.0), Vec3Df(-1.0, -0.4, -1.0) };
+std::vector<Vec3Df> plane1 = { Vec3Df(0.f, 0.f, 0.f), Vec3Df(0.f, 1.f, 0.f) };
+
 // Set to true when you want printed info
 const bool verbose = false;
 
@@ -36,13 +39,14 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cubeonplane.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
 	//MyMesh.loadMesh("sphereonplane.obj", true);
+	MyMesh.loadMesh("D:/workspace/CG/cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -92,8 +96,34 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
             intersected = true;
         }
     }
+
+	if (intersectPlane(origin, dest, plane, intersectionPoint, distance) && (distance < currDistance))
+	{
+		hit = intersectionPoint;
+		//triangleIndex = -1;
+		intersected = true;
+	}
+
     return intersected;
 }
+
+bool intersectPlane(const Vec3Df & origin, const Vec3Df & dest, const std::vector<Vec3Df> & plane, Vec3Df & hit, float & distance)
+{
+
+	Vec3Df p = plane[0];
+	Vec3Df n = plane[1];
+	float dotProduct = Vec3Df::dotProduct(dest, n);
+	if (dotProduct < 0.0000001)
+		return false;
+
+	float k = Vec3Df::dotProduct(n, (p - origin)) / dotProduct;
+	hit = origin + k*dest;
+	distance = hit.getLength();
+	std::cout << "plane intersection: (" << hit[0] << "," << hit[1] << "," << hit[2] << ")" << std::endl;
+
+	return true;
+}
+
 
 bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance, Vec3Df & hitnormal)
 {
