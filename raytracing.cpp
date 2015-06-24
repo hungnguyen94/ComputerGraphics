@@ -69,7 +69,8 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 	else
 	{
 		// Return the background color if there's no intersection.
-		color += Vec3Df(0.4f,0.4f,0.4f);
+		//if(color == Vec3Df(0.f,0.f,0.f))
+			//color += Vec3Df(0.4f,0.4f,0.4f);
 	}
 	return;
 }
@@ -182,7 +183,7 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
 		computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
 		if(verbose)
 			std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
-//		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3 && level < 3) {
+//		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 2) {
 //			computeReflectedLight(origin, dest, level, hit, color, triangleIndex);
 //		}
 	}
@@ -193,15 +194,18 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 {
 	//Calculate normal of triangle
 	Triangle triangle3d = MyMesh.triangles[triangleIndex];
-	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
-	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
-	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+//	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+//	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+//	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
 	normal.normalize();
 
 	float reflected = 2.0f * Vec3Df::dotProduct(MyCameraPosition, normal);
 	Vec3Df newDest = dest - reflected * normal;
 	Vec3Df newHit;
 	int newTriangleIndex;
+	std::cout << "reflected angle: " << reflected << std::endl;
+	performRayTracing(hit, newDest, --level, color);
 
 }
 
@@ -221,9 +225,10 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	distance = distance * distance;
 
 	//Calculate normal of triangle
-	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
-	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
-	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+//	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+//	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
+//	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
+	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
 	normal.normalize();
 
 	// cosine of the angle between the normal and the lightDir.

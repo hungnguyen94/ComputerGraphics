@@ -40,8 +40,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 400;  // resolution X
-unsigned int WindowSize_Y = 400;  // resolution Y
+unsigned int WindowSize_X = 200;  // resolution X
+unsigned int WindowSize_Y = 200;  // resolution Y
 
 std::mutex mutex;
 
@@ -278,8 +278,6 @@ void keyboard(unsigned char key, int x, int y)
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.
-		cout<<"Raytracing"<<endl;
-
 		//Setup an image with the size of the current image.
 		Image result(WindowSize_X,WindowSize_Y);
 		
@@ -322,8 +320,8 @@ void keyboard(unsigned char key, int x, int y)
 		for( unsigned int i = 0; i < maxThreadCount + 1; i++ ) {
 			// Render the pixels in a thread
 			threads.push_back(std::thread( threadedRayTracingTwo, y_start, y_end, x_start, x_end, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result)));
-			x_start = std::min(x_end, WindowSize_X);
-			x_end = std::min(x_end + threadXRenderSize, WindowSize_X);
+			x_start = (std::min)(x_end, WindowSize_X);
+			x_end = (std::min)(x_end + threadXRenderSize, WindowSize_X);
 			//y_start = std::min(y_end , WindowSize_Y);
 			//y_end = std::min(y_end + threadYRenderSize, WindowSize_Y);
 		}
