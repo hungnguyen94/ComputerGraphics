@@ -185,7 +185,7 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
         int tempTI;
         Vec3Df templightdir = MyLightPositions[i]-hit;
         templightdir.normalize();
-        Vec3Df hitoffset = hit + templightdir * 0.1;
+        Vec3Df hitoffset = hit + templightdir * 0.01;
         if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI)) {
             computeDirectLight(MyLightPositions[i], hit, triangleIndex, color);
             if(verbose)
