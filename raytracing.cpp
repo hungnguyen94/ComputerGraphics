@@ -14,6 +14,7 @@
 #endif
 #include "raytracing.h"
 
+#define EPSILON 0.00000001f
 
 //temporary variables
 //these are only used to illustrate 
@@ -35,13 +36,13 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("reflectionTest.obj", true);
-	//MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("macbook pro.obj", true);
 	//MyMesh.loadMesh("CoffeeTable.obj", true);
 	//MyMesh.loadMesh("cubeonplane.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
-	MyMesh.loadMesh("sphereonplane.obj", true);
+	//MyMesh.loadMesh("sphereonplane.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -104,7 +105,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     // If determinant == 0 then no intersection takes place.
     float determinent = Vec3Df::dotProduct(v0v1, pvec);
     //std::cout << "NdotR: " << NdotR << std::endl;
-    if (fabs(determinent) < 0.001f)
+    if (fabs(determinent) < EPSILON)
     	return false;
 
     float invDeterminent = 1 / determinent;
@@ -120,7 +121,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     	return false;
 
     distance = Vec3Df::dotProduct(v0v2, qvec) * invDeterminent;
-    if(distance < 0)
+    if(distance < 0.f)
     	return false;
 
     // Compute intersection point
@@ -166,17 +167,18 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 //	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
 //	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
 	Vec3Df normal = hitnormal;
-	normal.normalize();
+//	normal.normalize();
 
-	Vec3Df reflectVector = 2 * normal * Vec3Df::dotProduct(normal, normal) - origin;
+	Vec3Df viewDir = hit - origin;
+	viewDir.normalize();
+	float reflectAngle = Vec3Df::dotProduct(normal, viewDir);
+	if(fabs(reflectAngle) < EPSILON)
+		return;
+	Vec3Df reflectVector = viewDir - (2 * normal * reflectAngle);
 	reflectVector.normalize();
-    hit.normalize();
 
-//	float reflectAngle = Vec3Df::dotProduct(normal, normal);
-//	if(reflectAngle < 0.001f)
-//		return;
-//	Vec3Df newDest = (2 * normal * reflected) - dest;
-//	std::cout << "reflected angle: " << reflectAngle << std::endl;
+
+	std::cout << "reflected angle: " << reflectAngle << std::endl;
 	performRayTracing(hit, reflectVector, level, color);
 
 }
@@ -206,7 +208,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	// cosine of the angle between the normal and the lightDir.
 	float NdotL = Vec3Df::dotProduct(normal, lightDir);
 	// Can't be negative, if so set to 0.
-	if(fabs(NdotL) < 0) {
+	if(fabs(NdotL) < EPSILON) {
 		NdotL = 0.f;
 	}
 	// D = Id*Kd*cos(a)
@@ -226,6 +228,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 			std::cout << "\nSpecular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}
 	color += ambient + (diffuse + specular) / distance;
+	color *= 0.5f;
 	if(verbose)
 		std::cout << "\nLight angle: " << NdotL << "\nDiffuse: " << diffuse
 					<< "\nAmbient: " << ambient << "\nSpecular: " << specular
