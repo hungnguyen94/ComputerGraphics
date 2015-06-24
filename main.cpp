@@ -68,7 +68,7 @@ float light_angle_speed = 0.03;
 GLfloat ambient_light[3] = { 0.2, 0.2, 0.2 };
 GLfloat light_color[3] = { 1.0, 1.0, 1.0 };
 GLfloat light_position[4] = { 0.0, 2.0, 4.0, 1.0 };
-GLfloat camera_position[4] = { 0.0, 0.0, 10.0, 1.0 };
+GLfloat camera_position[4] = { 10.0, 10.0, 10.0, 10.0 };
 
 void display(void);
 void reshape();
@@ -97,9 +97,11 @@ void display() {
 
 	MyCameraPosition = getCameraPosition();
 
-	glMatrixMode(GL_MODELVIEW);
+	
 
-	MyCameraPosition = getCameraPosition();
+	glPushMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
 
 	//activate the light following the camera
 	glEnable(GL_LIGHTING);
@@ -154,6 +156,9 @@ int main(int argc, char** argv)
 
 	init();
 
+	// Initialize the camera position
+	tb_matrix[13] -= 1.0;
+	tb_matrix[14] -= 5.0;
 
 	//main loop for glut... this just runs your application
 	glutMainLoop();
