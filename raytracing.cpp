@@ -465,4 +465,56 @@ void computeBoundingBoxes()
 	} //http://www.cs.utah.edu/~awilliam/box/
 }
 
+bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
+    float tx_min, tx_max, ty_min, ty_max, tz_min, tz_max;
+    
+    //We hebben die max_x,y,z en min_x,y,z dus nodig uit die methode hierboven.
+    //Privates ervan maken en dan memoryreferences gebruiken?
+    
+    //ray x-coordinate of close intersectionpoint
+    tx_min = ((min_x - origin.p[0]) / dest.p[0]);
+    //ray x-coordinate of far intersectionpoint
+    tx_max = ((max_x - origin.p[0]) / dest.p[0]);
+    
+    //ray y-coordinate of close intersectionpoint
+    ty_min = ((min_y - origin.p[1]) / dest.p[1]);
+    //ray y-coordinate of far intersectionpoint
+    ty_max = ((max_y - origin.p[1]) / dest.p[1]);
+    
+    //If true then ray misses
+    if ((tx_min > ty_max) || (ty_min > tx_max)) {
+        return false;
+    }
+    
+    //Find t_in and t_out
+    if (ty_min > tx_min) {
+        tmin = tymin;
+    }
+    if (ty_max < tx_max) {
+        tx_max = ty_max;
+    }
+    
+    //ray z-coordinate of close intersectionpoint
+    tz_min = ((min_z - origin.p[2]) / dest.p[2]);
+    //ray z-coordinate of far intersectionpoint
+    tz_max = ((max_z - origin.p[2]) / dest.p[2]);
+    
+    //If true then ray misses
+    if ((tx_min > tz_max) || (tz_min > tx_max)) {
+        return false;
+    }
+    
+    // Geloof dat we dit eruit kunnen gooien. t0,t1 is namelijk het interval
+    // van valid hits. Maar dat interval is volgens mij al in onze intersec geregeld.
+    // Staat verder ook niet in de slides.
+    if (tz_min > tx_min) {
+        tmin = tzmin;
+    }
+    if (tzmax < tmax) {
+        tmax = tzmax;
+    }
+    return ( (tmin < t1) && (tmax > t0) );
+    //Dus ik denk hier gewoon return true;
+}
+
 
