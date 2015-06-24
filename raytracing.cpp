@@ -434,42 +434,35 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 
 void computeBoundingBoxes()
 {
-    float min_x = -999999.f;
-	float min_y = -999999.f;
-	float min_z = -999999.f;
+    float min_x = 999999.f;
+	float min_y = 999999.f;
+	float min_z = 999999.f;
 
-	float max_x = 999999.f;
-	float max_y = 999999.f;
-	float max_z = 999999.f;
+	float max_x = -999999.f;
+	float max_y = -999999.f;
+	float max_z = -999999.f;
 
-	for (unsigned int i = 0; i < MyMesh.triangles.size(); i++)
+	for (unsigned int i = 0; i < vertices.size(); i++)
 	{
-		if (MyMesh.triangles[i].v[0] < min_x)
-		{
-			min_x = MyMesh.triangles[i].v[0];
+        if (MyMesh.vertices[i].p[0] < min_x) {
+            min_x = MyMesh.vertices[i].p[0];
 		}
-		if (MyMesh.triangles[i].v[1] < min_y)
-		{
-			min_y = MyMesh.triangles[i].v[1];
-		}
-		if (MyMesh.triangles[i].v[2] < min_z)
-		{
-			min_z = MyMesh.triangles[i].v[2];
-		}
-		if (MyMesh.triangles[i].v[0] > max_x)
-		{
-			max_x = MyMesh.triangles[i].v[0];
-		}
-		if (MyMesh.triangles[i].v[1] > max_y)
-		{
-			max_y = MyMesh.triangles[i].v[1];
-		}
-		if (MyMesh.triangles[i].v[2] > max_z)
-		{
-			max_z = MyMesh.triangles[i].v[2];
-		}
-	}
-	//http://www.cs.utah.edu/~awilliam/box/
+        if (MyMesh.vertices[i].p[1] < min_y) {
+            min_y = MyMesh.vertices[i].p[1];
+        }
+        if (MyMesh.vertices[i].p[2] < min_z) {
+            min_z = MyMesh.vertices[i].p[2];
+        }
+        if (MyMesh.vertices[i].p[0] > max_x) {
+            max_x = MyMesh.vertices[i].p[0];
+        }
+        if (MyMesh.vertices[i].p[1] > max_y) {
+            max_y = MyMesh.vertices[i].p[1];
+        }
+        if (MyMesh.vertices[i].p[2] > max_z) {
+            max_z = MyMesh.vertices[i].p[2];
+        }
+	} //http://www.cs.utah.edu/~awilliam/box/
 }
 
 
