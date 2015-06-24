@@ -40,8 +40,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 300;  // resolution X
-unsigned int WindowSize_Y = 300;  // resolution Y
+unsigned int WindowSize_X = 400;  // resolution X
+unsigned int WindowSize_Y = 400;  // resolution Y
 
 std::mutex mutex;
 
@@ -198,37 +198,42 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 		dest->p[2]=float(z);
 }
 
-void threadedRayTracingTwo(const int y, const int WindowSize_X, const int WindowSize_Y,
+void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start, const int x_end,
 		const Vec3Df origin00, const Vec3Df origin01, const Vec3Df origin10,
 		const Vec3Df origin11, const Vec3Df dest00, const Vec3Df dest01,
 		const Vec3Df dest10, const Vec3Df dest11, Image & result)
 {
-	for (unsigned int x=0; x<WindowSize_X;++x)
+	for (unsigned int y=y_start; y<y_end;++y)
 	{
-		//std::lock_guard<std::mutex> guard(mutex);
-		std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
-			<< WindowSize_X << "                \r";
-		std::cout.flush();
+		for (unsigned int x=x_start; x<x_end;++x)
+		{
+			//std::lock_guard<std::mutex> guard(mutex);
+			mutex.lock();
+			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
+				<< WindowSize_X << "                \r";
+			std::cout.flush();
+			mutex.unlock();
 
-		//produce the rays for each pixel, by interpolating
-		//the four rays of the frustum corners.
-		float xscale=1.0f-float(x)/(WindowSize_X-1);
-		float yscale=1.0f-float(y)/(WindowSize_Y-1);
+			//produce the rays for each pixel, by interpolating
+			//the four rays of the frustum corners.
+			float xscale=1.0f-float(x)/(WindowSize_X-1);
+			float yscale=1.0f-float(y)/(WindowSize_Y-1);
 
-		Vec3Df origin, dest;
-		origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
-			(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
-		dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
-			(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+			Vec3Df origin, dest;
+			origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
+				(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
+			dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
+				(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
-		int maxLevel = 7;
-		//launch raytracing for the given ray.
-		Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
-		performRayTracing(origin, dest, maxLevel, rgb);
-		mutex.lock();
-		//store the result in an image
-		result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
-		mutex.unlock();
+			int maxLevel = 7;
+			//launch raytracing for the given ray.
+			Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
+			performRayTracing(origin, dest, maxLevel, rgb);
+			//mutex.lock();
+			//store the result in an image
+			result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+			//mutex.unlock();
+		}
 	}
 }
 
@@ -305,20 +310,23 @@ void keyboard(unsigned char key, int x, int y)
 
 		std::cout << "Raytracing with " << maxThreadCount << " threads" << std::endl;
 
-		for (unsigned int y=0; y<WindowSize_Y;++y)
-		{
-			//threadedRayTracingTwo( y, WindowSize_X, WindowSize_Y, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result));
-			threads.push_back(std::thread( threadedRayTracingTwo, y, WindowSize_X, WindowSize_Y, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result)));
-			currentThreadCount++;
-			// Wait for all running threads to finish and remove them from the list.
-			if(currentThreadCount >= maxThreadCount) {
-				for(std::thread &t : threads) {
-					t.join();
-				}
-				threads.clear();
-				currentThreadCount = 0;
-			}
+		unsigned int threadXRenderSize = WindowSize_X / maxThreadCount;
+		unsigned int threadYRenderSize = WindowSize_Y / maxThreadCount;
+		unsigned int x_start = 0;
+		unsigned int x_end = threadXRenderSize;
+		unsigned int y_start = 0;
+		unsigned int y_end = WindowSize_Y; //threadYRenderSize;
+
+		// Threads render vertical blocks of X.
+		for( unsigned int i = 0; i < maxThreadCount + 1; i++ ) {
+			// Render the pixels in a thread
+			threads.push_back(std::thread( threadedRayTracingTwo, y_start, y_end, x_start, x_end, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result)));
+			x_start = std::min(x_end, WindowSize_X);
+			x_end = std::min(x_end + threadXRenderSize, WindowSize_X);
+			//y_start = std::min(y_end , WindowSize_Y);
+			//y_end = std::min(y_end + threadYRenderSize, WindowSize_Y);
 		}
+
 		// Wait for all threads to finish before writing to image.
 		for (std::thread &t : threads) {
 			t.join();
