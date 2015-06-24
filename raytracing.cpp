@@ -77,6 +77,30 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 	return;
 }
 
+//return the color of your pixel.
+void performRayTracing2(const Vec3Df & origin, const Vec3Df & dest, int &level, Vec3Df & color)
+{
+	level--;
+	// Stop if the maxlevel is reached
+	if(level <= 0)
+		return;
+
+	Vec3Df hit, hitnormal;
+	int triangleIndex = 0;
+	if( intersectRay(origin, dest, hit, level, triangleIndex, hitnormal) )
+	{
+		if(verbose)
+			std::cout << "\nIntersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
+		// Calculate the color of the intersected triangle.
+		shade( origin, dest, level, hit, color, triangleIndex, hitnormal);
+	}
+	else
+    {
+     	//color = Vec3Df(0.4f, 0.4f, 0.4f);
+    }
+	return;
+}
+
 bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex, Vec3Df & hitnormal)
 {
     float currDistance = 9999.f;
@@ -170,19 +194,27 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 //	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
 //	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
 	Vec3Df normal = hitnormal;
-//	normal.normalize();
+	normal.normalize();
 
 	Vec3Df viewDir = hit - origin;
 	viewDir.normalize();
 	float reflectAngle = Vec3Df::dotProduct(normal, viewDir);
-	if(fabs(reflectAngle) < EPSILON)
-		return;
+	//if(fabs(reflectAngle) < EPSILON)
+		//return;
 	Vec3Df reflectVector = viewDir - (2 * normal * reflectAngle);
 	reflectVector.normalize();
 
+//	std::cout << "reflected angle: " << reflectAngle << "\n" << std::endl;
 
-	std::cout << "reflected angle: " << reflectAngle << std::endl;
-	performRayTracing(hit, reflectVector, level, color);
+	Vec3Df reflectedColor;
+	performRayTracing(hit, reflectVector, level, reflectedColor);
+	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
+
+	std::cout << "Color before: " << color << std::endl;
+	reflectedColor = reflectedColor * 0.5f;
+	color = color * material.Tr();
+	color += reflectedColor;
+	std::cout << "Color after: " << color << std::endl;
 
 }
 
