@@ -14,7 +14,7 @@
 #endif
 #include "raytracing.h"
 
-#define EPSILON 0.000001f
+#define EPSILON 0.00001f
 
 //temporary variables
 //these are only used to illustrate 
@@ -24,6 +24,8 @@ Vec3Df testRayDestination;
 
 // Set to true when you want printed info
 const bool verbose = false;
+
+//int level2 = 5;
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -54,6 +56,7 @@ void init()
 //return the color of your pixel.
 void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, Vec3Df & color)
 {
+	level--;
 	// Stop if the maxlevel is reached
 	if(level <= 0)
 		return;
@@ -71,7 +74,6 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
     {
      	//color = Vec3Df(0.4f, 0.4f, 0.4f);
     }
-	level--;
 	return;
 }
 
@@ -84,7 +86,7 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
     
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
-        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance, intersectionNormal) & (distance < currDistance + EPSILON) & (distance > EPSILON) )
+        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance, intersectionNormal) & (distance < currDistance - EPSILON) & (distance > EPSILON) )
         {
         	currDistance = distance;
             triangleIndex = i;
@@ -209,7 +211,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	// cosine of the angle between the normal and the lightDir.
 	float NdotL = Vec3Df::dotProduct(normal, lightDir);
 	// Can't be negative, if so set to 0.
-	if(fabs(NdotL) < 0) {
+	if(fabs(NdotL) < EPSILON) {
 		NdotL = 0.f;
 	}
 	// D = Id*Kd*cos(a)

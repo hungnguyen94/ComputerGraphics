@@ -44,7 +44,7 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 200;  // resolution X
 unsigned int WindowSize_Y = 200;  // resolution Y
 unsigned int threadsMultiplier = 2; // Change amount of threads
-unsigned int maxRecursionLevel = 3; // Max recursion of reflective rays
+unsigned int maxRecursionLevel = 5; // Max recursion of reflective rays
 
 std::mutex mutex;
 
