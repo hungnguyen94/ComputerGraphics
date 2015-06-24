@@ -21,6 +21,15 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
+// Test variables for bb
+float min_x = 999999.f;
+float min_y = 999999.f;
+float min_z = 999999.f;
+
+float max_x = -999999.f;
+float max_y = -999999.f;
+float max_z = -999999.f;
+
 // Set to true when you want printed info
 const bool verbose = false;
 
@@ -434,14 +443,6 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 
 void computeBoundingBoxes()
 {
-    float min_x = 999999.f;
-	float min_y = 999999.f;
-	float min_z = 999999.f;
-
-	float max_x = -999999.f;
-	float max_y = -999999.f;
-	float max_z = -999999.f;
-
 	for (unsigned int i = 0; i < MyMesh.vertices.size(); i++)
 	{
         if (MyMesh.vertices[i].p[0] < min_x) {
@@ -478,7 +479,7 @@ class Box {
 };
 
 bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest, float t0, float t1) {
-    float tx_min, tx_max, ty_min, ty_max, tz_min, tz_max;
+    float tmin, tmax, tymin, tx_min, tx_max, ty_min, ty_max, tz_min, tz_max, tzmin, tzmax;
     
     //1
     //We hebben die max_x,y,z en min_x,y,z dus nodig uit die methode hierboven.
