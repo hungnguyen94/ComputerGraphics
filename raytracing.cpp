@@ -232,7 +232,19 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 {
 	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
 	float lightIntensity = 20.f;
-	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
+	if (triangleIndex != NULL) {
+		Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
+	}else {
+		Material material = new Material();
+		material.set_Ka(0.5, 0.5, 0.5);
+		material.set_Kd(0.5, 0.5, 0.5);
+		material.set_Ks(0.5, 0.5, 0.5);
+		material.set_Ni(0.5);
+		material.set_Ns(0.5);
+		material.set_Tr(0.5);
+		material.set_illum(0.5);
+	}
+
 	if(verbose)
 		std::cout << "\nMaterial: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << "\nns: " << material.Ns() << "\nni: " << material.Ni() << std::endl;
 

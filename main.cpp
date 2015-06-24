@@ -21,6 +21,13 @@
 #include <thread>
 #include <mutex>
 #include <algorithm>
+//#include <thread>
+//#include <mutex>
+#include <algorithm>
+#include "mingw.mutex.h"
+#include "mingw.thread.h"
+#include "mingw.condition_variable.h"
+
 
 
 //This is the main application
@@ -320,7 +327,7 @@ void keyboard(unsigned char key, int x, int y)
 		// Threads render vertical blocks of X.
 		for( unsigned int i = 0; i < maxThreadCount + 1; i++ ) {
 			// Render the pixels in a thread
-			threads.push_back(std::thread( threadedRayTracingTwo, y_start, y_end, x_start, x_end, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, std::ref(result)));
+			threads.push_back(std::thread( threadedRayTracingTwo, y_start, y_end, x_start, x_end, origin00, origin01, origin10, origin11, dest00, dest01, dest10, dest11, result));
 			x_start = (std::min)(x_end, WindowSize_X);
 			x_end = (std::min)(x_end + threadXRenderSize, WindowSize_X);
 			//y_start = std::min(y_end , WindowSize_Y);
