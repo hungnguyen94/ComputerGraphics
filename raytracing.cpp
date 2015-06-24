@@ -14,6 +14,7 @@
 #endif
 #include "raytracing.h"
 
+#define EPSILON 0.001f
 
 //temporary variables
 //these are only used to illustrate 
@@ -82,7 +83,7 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
     
     for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
     {
-        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance, intersectionNormal) & (distance < currDistance) )
+        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance, intersectionNormal) & (distance < currDistance + EPSILON) & (distance > EPSILON) )
         {
         	currDistance = distance;
             triangleIndex = i;
@@ -104,7 +105,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     // If determinant == 0 then no intersection takes place.
     float determinent = Vec3Df::dotProduct(v0v1, pvec);
     //std::cout << "NdotR: " << NdotR << std::endl;
-    if (fabs(determinent) < 0.001f)
+    if (fabs(determinent) < EPSILON)
     	return false;
 
     float invDeterminent = 1 / determinent;
@@ -120,7 +121,7 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
     	return false;
 
     distance = Vec3Df::dotProduct(v0v2, qvec) * invDeterminent;
-    if(distance < 0)
+    if(distance <= EPSILON)
     	return false;
 
     // Compute intersection point
@@ -143,16 +144,16 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
         templightdir.normalize();
         Vec3Df hitoffset = hit + templightdir * 0.01f;
         // Check if point is in shadow
-        if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI, tempnormal)) {
+//        if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI, tempnormal)) {
             computeDirectLight(MyLightPositions[i], hit, triangleIndex, color, hitnormal);
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
-        }
-//		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 3) {
-//			std::cout << "reflected" << "\r";
-//			std::cout.flush();
-//			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
-//		}
+//        }
+		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() == 2) {
+			std::cout << "reflected" << "\r";
+			std::cout.flush();
+			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
+		}
 	}
 
 }
@@ -166,17 +167,18 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 //	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
 //	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
 	Vec3Df normal = hitnormal;
-	normal.normalize();
+//	normal.normalize();
 
-	Vec3Df reflectVector = 2 * normal * Vec3Df::dotProduct(normal, normal) - origin;
+	Vec3Df viewDir = hit - origin;
+	viewDir.normalize();
+	float reflectAngle = Vec3Df::dotProduct(normal, viewDir);
+	if(fabs(reflectAngle) < EPSILON)
+		return;
+	Vec3Df reflectVector = viewDir - (2 * normal * reflectAngle);
 	reflectVector.normalize();
-    hit.normalize();
 
-//	float reflectAngle = Vec3Df::dotProduct(normal, normal);
-//	if(reflectAngle < 0.001f)
-//		return;
-//	Vec3Df newDest = (2 * normal * reflected) - dest;
-//	std::cout << "reflected angle: " << reflectAngle << std::endl;
+
+	std::cout << "reflected angle: " << reflectAngle << std::endl;
 	performRayTracing(hit, reflectVector, level, color);
 
 }
@@ -226,6 +228,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 			std::cout << "\nSpecular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}
 	color += ambient + (diffuse + specular) / distance;
+	color *= 0.5f;
 	if(verbose)
 		std::cout << "\nLight angle: " << NdotL << "\nDiffuse: " << diffuse
 					<< "\nAmbient: " << ambient << "\nSpecular: " << specular
