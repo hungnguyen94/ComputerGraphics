@@ -242,7 +242,7 @@ void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	float cosI = -1.0f * Vec3Df::dotProduct(hitnormal, viewDir);
 	float cosT2 = 1.0 - refractIndex * refractIndex * (1.0f - cosI - cosI);
 
-	if(cosT2 < 0.0001f)
+	if(cosT2 < 0.1f)
 		return;
 
 	Vec3Df refractedVector = (viewDir * refractIndex) + (hitnormal * (refractIndex * cosI - sqrtf(cosT2)));
@@ -282,11 +282,12 @@ void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 //
 //	float cosT = sqrtf(1.0f - sinT2);
 //	Vec3Df refractedVector = dest * index + hitnormal * (index * cosI - cosT);
-
-	//Vec3Df newHit = hit + EPSILON * hitnormal;
+	Vec3Df tempdir = origin - hit;
+	tempdir.normalize();
+	Vec3Df newHit = hit + EPSILON * tempdir;
 
 	Vec3Df refractedColor;
-	performRayTracing(hit, refractedVector, level, refractedColor);
+	performRayTracing(newHit, refractedVector, level, refractedColor);
 
 
 
