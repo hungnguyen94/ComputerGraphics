@@ -23,8 +23,10 @@ Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
 // Set to true when you want printed info
-const bool verbose = false;
-const float lightIntensity = 100.f;
+const bool verbose = true;
+const bool shadowOn = false;
+const bool reflectOn = false;
+const float lightIntensity = 30.f;
 
 //int level2 = 5;
 
@@ -46,8 +48,9 @@ void init()
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
 	//MyMesh.loadMesh("sphereonplane.obj", true);
-	MyMesh.loadMesh("twospheres.obj", true);
+//	MyMesh.loadMesh("twospheres.obj", true);
 	//MyMesh.loadMesh("sphereinroomobj.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -73,10 +76,6 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 		// Calculate the color of the intersected triangle.
 		shade( origin, dest, level, hit, color, triangleIndex, hitnormal);
 	}
-	else
-    {
-     	//color = Vec3Df(0.4f, 0.4f, 0.4f);
-    }
 	return;
 }
 
@@ -99,6 +98,42 @@ bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int
         }
     }
     return intersected;
+}
+
+bool intersectRayWithoutEpsilon( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex, Vec3Df & hitnormal)
+{
+    float currDistance = 9999.f;
+    bool intersected = false;
+    Vec3Df intersectionPoint, intersectionNormal;
+    float distance = 0.f;
+
+    for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
+    {
+        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance, intersectionNormal) & (distance < currDistance) )
+        {
+        	currDistance = distance;
+            triangleIndex = i;
+            hit = intersectionPoint;
+            hitnormal = intersectionNormal;
+            intersected = true;
+        }
+    }
+    return intersected;
+}
+
+bool pointInShadow( const Vec3Df & origin, const Vec3Df & dest )
+{
+	if(!shadowOn)
+		return true;
+
+	float distance;
+    Vec3Df intersectionPoint, intersectionNormal;
+    for(unsigned int i = 0; i < MyMesh.triangles.size(); i++)
+    {
+        if( intersect(origin, dest, MyMesh.triangles[i], intersectionPoint, distance, intersectionNormal) )
+        	return false;
+    }
+    return true;
 }
 
 bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance, Vec3Df & hitnormal)
@@ -146,20 +181,17 @@ bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & tri
 void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal) {
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i)
 	{
-        Vec3Df temphit, tempnormal;
-        int templevel = 0;
-        int tempTI;
         Vec3Df templightdir = MyLightPositions[i]-hit;
         templightdir.normalize();
-        Vec3Df hitoffset = hit + templightdir * 0.01f;
+        Vec3Df hitoffset = hit + (templightdir * EPSILON);
         // Check if point is in shadow
-        if(!intersectRay(hitoffset, MyLightPositions[i], temphit, templevel, tempTI, tempnormal) ) {
+        if(pointInShadow(hitoffset, MyLightPositions[i]) ) {
             computeDirectLight(MyLightPositions[i], hit, triangleIndex, color, hitnormal);
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
         // If transmission index isn't 1, reflect.
-		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].Tr() != 1) {
+		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].has_Tr() ) {
 			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
 		}
 	}
@@ -168,13 +200,15 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
 
 void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal)
 {
+	if(!reflectOn)
+		return;
 	//Calculate normal of triangle
 	Triangle triangle3d = MyMesh.triangles[triangleIndex];
 //	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 //	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 //	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
 //	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
-	Vec3Df normal = hitnormal * EPSILON + hitnormal;
+	Vec3Df normal = hitnormal;
 
 	normal.normalize();
 
@@ -187,20 +221,17 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	reflectVector.normalize();
 
 //	std::cout << "reflected angle: " << reflectAngle << "\n" << std::endl;
-
+	Vec3Df newHit = hit + EPSILON * normal;
 	Vec3Df reflectedColor;
-	performRayTracing(hit, reflectVector, level, reflectedColor);
+	performRayTracing(newHit, reflectVector, level, reflectedColor);
 
 //	if(reflectedColor == Vec3Df(0.f, 0.f, 0.f))
 //		return;
 
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	reflectedColor = reflectedColor * (1.f - material.Tr());
-//	std::cout << "Color reflected: " << reflectedColor << std::endl;
 	color *= material.Tr();
 	color += reflectedColor;
-//	std::cout << "Color after: " << color << std::endl;
-
 }
 
 void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color, Vec3Df & hitnormal)
@@ -241,8 +272,8 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	float specAngle = Vec3Df::dotProduct(halfDir, normal);
 	Vec3Df specular = Vec3Df(0, 0, 0);
 	if(specAngle > 0 && material.Ks() != Vec3Df(0,0,0)) {
-		double specTerm = std::pow(specAngle, material.Ns());
-		specular = specTerm * 5.0f * material.Ks();
+		double specTerm = std::pow(specAngle, 5.0f * material.Ns());
+		specular = specTerm * material.Ks();
 		if(verbose)
 			std::cout << "\nSpecular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}

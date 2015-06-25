@@ -25,6 +25,7 @@ void init();
 void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
 bool intersectRay( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex, Vec3Df & hitnormal);
+bool intersectRayWithoutEpsilon( const Vec3Df & origin, const Vec3Df & dest, Vec3Df & hit, int & level, int & triangleIndex, Vec3Df & hitnormal);
 
 bool intersect( const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle, Vec3Df & hit, float & distance, Vec3Df & hitnormal);
 
