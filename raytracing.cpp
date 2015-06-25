@@ -26,7 +26,7 @@ Vec3Df testRayDestination;
 const bool verbose = true;
 const bool shadowOn = false;
 const bool reflectOn = false;
-const float lightIntensity = 30.f;
+const float lightIntensity = 60.f;
 
 //int level2 = 5;
 
@@ -69,7 +69,7 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 
 	Vec3Df hit, hitnormal;
 	int triangleIndex = 0;
-	if( intersectRay(origin, dest, hit, level, triangleIndex, hitnormal) )
+	if( intersectRayWithoutEpsilon(origin, dest, hit, level, triangleIndex, hitnormal) )
 	{
 		if(verbose)
 			std::cout << "\nIntersection at " << hit << " at triangleIndex " << triangleIndex << std::endl;
@@ -186,7 +186,7 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
         Vec3Df hitoffset = hit + (templightdir * EPSILON);
         // Check if point is in shadow
         if(pointInShadow(hitoffset, MyLightPositions[i]) ) {
-            computeDirectLight(MyLightPositions[i], hit, triangleIndex, color, hitnormal);
+            computeDirectLight(MyLightPositions[i], hitoffset, triangleIndex, color, hitnormal);
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
@@ -258,7 +258,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	// cosine of the angle between the normal and the lightDir.
 	float NdotL = Vec3Df::dotProduct(normal, lightDir);
 	// Can't be negative, if so set to 0.
-	if(fabs(NdotL) < 0) {
+	if(NdotL < 0) {
 		NdotL = 0.f;
 	}
 	// D = Id*Kd*cos(a)
@@ -271,14 +271,14 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	halfDir.normalize();
 	float specAngle = Vec3Df::dotProduct(halfDir, normal);
 	Vec3Df specular = Vec3Df(0, 0, 0);
-	if(specAngle > 0 && material.Ks() != Vec3Df(0,0,0)) {
-		double specTerm = std::pow(specAngle, 5.0f * material.Ns());
+	if(specAngle > EPSILON && material.has_Ks()) {
+		double specTerm = std::pow(specAngle, 2.0f * material.Ns());
 		specular = specTerm * material.Ks();
 		if(verbose)
 			std::cout << "\nSpecular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
 	}
-	color += ambient + ((diffuse + specular) / distance);
-	color *= 0.5f;
+	color += ambient + (diffuse + specular) / distance;
+	//color *= 0.5f;
 	if(verbose)
 		std::cout << "\nLight angle: " << NdotL << "\nDiffuse: " << diffuse
 					<< "\nAmbient: " << ambient << "\nSpecular: " << specular

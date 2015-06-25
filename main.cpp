@@ -41,10 +41,11 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 200;  // resolution X
-unsigned int WindowSize_Y = 200;  // resolution Y
-unsigned int threadsMultiplier = 2; // Change amount of threads
-unsigned int maxRecursionLevel = 6; // Max recursion of reflective rays
+unsigned int WindowSize_X = 300;  // resolution X
+unsigned int WindowSize_Y = 300;  // resolution Y
+unsigned int threadsMultiplier = 0; // Change amount of threads
+unsigned int maxRecursionLevel = 2; // Max recursion of reflective rays
+const unsigned int superSamples = 2; // Squared amount of rays per pixel
 
 std::mutex mutex;
 
@@ -83,7 +84,7 @@ void reshape(int width, int height) {
 	glLoadIdentity();
 	float aspect_ratio = float(width) / float(height);
 	float field_of_view = 60.0;
-	gluPerspective(field_of_view, aspect_ratio, 0.1, 300.0);
+	gluPerspective(field_of_view, aspect_ratio, 0.1, 30.0);
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -252,31 +253,48 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 		{
 			//std::lock_guard<std::mutex> guard(mutex);
 			// Lock mutex to output doesn't get messed up
-			mutex.lock();
-			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
-				<< WindowSize_X << "                \r";
-			std::cout.flush();
-			mutex.unlock();
+//			mutex.lock();
+//			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
+//				<< WindowSize_X << "                \r";
+//			std::cout.flush();
+//			mutex.unlock();
 
-			//produce the rays for each pixel, by interpolating
-			//the four rays of the frustum corners.
-			float xscale=1.0f-float(x)/(WindowSize_X-1);
-			float yscale=1.0f-float(y)/(WindowSize_Y-1);
 
-			Vec3Df origin, dest;
-			origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
-				(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
-			dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
-				(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+			std::vector<Vec3Df> rgbSamples;
+			for(unsigned int i = 0; i < superSamples; i++)
+			{
+				//produce the rays for each pixel, by interpolating
+				//the four rays of the frustum corners.
+				float xscale=1.0f-float((superSamples * x) + i)/(superSamples * (WindowSize_X-1));
 
-			int maxLevel = maxRecursionLevel + 1;
-			//launch raytracing for the given ray.
-			Vec3Df rgb = Vec3Df(0.f, 0.f, 0.f);
-			performRayTracing(origin, dest, maxLevel, rgb);
-			//mutex.lock();
+				for(unsigned int j = 0; j < superSamples; j++)
+				{
+					float yscale=1.0f-float((superSamples * y) + j)/(superSamples * (WindowSize_Y-1));
+
+					Vec3Df origin, dest;
+					origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
+						(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
+					dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
+						(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+
+					//launch raytracing for the given ray.
+					Vec3Df rgb = Vec3Df(0,0,0);
+					int maxLevel = maxRecursionLevel + 1;
+					performRayTracing(origin, dest, maxLevel, rgb);
+					if(rgb != Vec3Df(0,0,0))
+						std::cout << "Sample: " << j << i << "\t\t" << rgb << std::endl;
+					rgbSamples.push_back(rgb);
+				}
+			}
+			Vec3Df rgb = Vec3Df(0, 0, 0);
+			for( Vec3Df &rgbPixels : rgbSamples ) {
+				rgb += rgbPixels;
+			}
+			//std::cout << "Resulting pixel: " << rgb << std::endl;
+			rgb = rgb / std::pow(superSamples, 2);
 			//store the result in an image
 			result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
-			//mutex.unlock();
+
 		}
 	}
 }
@@ -351,11 +369,12 @@ void keyboard(unsigned char key, int x, int y)
 
 		// Get number of CPU cores
 		unsigned int nthreads = std::thread::hardware_concurrency();
-		if(nthreads <= 0)
-			nthreads = 1;
 
 		// Specify number of threads to run in.
-		const unsigned int maxThreadCount = nthreads * threadsMultiplier;
+		unsigned int maxThreadCount = nthreads * threadsMultiplier;
+
+		if(maxThreadCount <= 0)
+			maxThreadCount = 1;
 
 		std::cout << "Raytracing with " << maxThreadCount << " threads" << std::endl;
 
