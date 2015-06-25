@@ -14,7 +14,7 @@
 #endif
 #include "raytracing.h"
 
-#define EPSILON 0.00000001f
+#define EPSILON 0.00001f
 
 //temporary variables
 //these are only used to illustrate 
@@ -24,6 +24,7 @@ Vec3Df testRayDestination;
 
 // Set to true when you want printed info
 const bool verbose = false;
+const float lightIntensity = 100.f;
 
 //int level2 = 5;
 
@@ -158,9 +159,9 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
         // If transmission index isn't 1, reflect.
-//		if(MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].Tr() != 1) {
-//			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
-//		}
+		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].Tr() != 1) {
+			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
+		}
 	}
 
 }
@@ -173,7 +174,7 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 //	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 //	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
 //	Vec3Df normal = MyMesh.vertices[triangle3d.v[0]].n;
-	Vec3Df normal = hitnormal * EPSILON;
+	Vec3Df normal = hitnormal * EPSILON + hitnormal;
 
 	normal.normalize();
 
@@ -190,22 +191,21 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	Vec3Df reflectedColor;
 	performRayTracing(hit, reflectVector, level, reflectedColor);
 
-	if(reflectedColor == Vec3Df(0.f, 0.f, 0.f))
-		return;
+//	if(reflectedColor == Vec3Df(0.f, 0.f, 0.f))
+//		return;
 
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	reflectedColor = reflectedColor * (1.f - material.Tr());
-	//std::cout << "Color reflected: " << reflectedColor2 << std::endl;
+//	std::cout << "Color reflected: " << reflectedColor << std::endl;
 	color *= material.Tr();
 	color += reflectedColor;
-	//std::cout << "Color after: " << color << std::endl;
+//	std::cout << "Color after: " << color << std::endl;
 
 }
 
 void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color, Vec3Df & hitnormal)
 {
 	Vec3Df lightColor = Vec3Df(1.f, 1.f, 1.f);
-	float lightIntensity = 60.f;
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	if(verbose)
 		std::cout << "\nMaterial: \n" << "ka: "<< material.Ka() << "\nkd: " << material.Kd() << "\nks: " <<material.Ks() << "\nns: " << material.Ns() << "\nni: " << material.Ni() << std::endl;
