@@ -14,7 +14,7 @@
 #endif
 #include "raytracing.h"
 
-#define EPSILON 0.0001f
+#define EPSILON 0.00001f
 
 //temporary variables
 //these are only used to illustrate 
@@ -29,7 +29,7 @@ const bool reflectOn = true;
 const bool refractOn = true;
 const float lightIntensity = 80.f;
 
-float currRefractIndex = 1.f;
+float refractIndex = 1.33f;
 
 bool inside = false;
 
@@ -52,11 +52,11 @@ void init()
 	//MyMesh.loadMesh("cubeonplane.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
-//	MyMesh.loadMesh("sphereonplane.obj", true);
+	MyMesh.loadMesh("sphereonplane.obj", true);
 //	MyMesh.loadMesh("twospheres.obj", true);
 	//MyMesh.loadMesh("sphereinroomobj.obj", true);
 //	MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("monkey.obj", true);
+//	MyMesh.loadMesh("monkey.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -197,13 +197,11 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
-//		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].Ni() ) {
-			computeRefractedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
-//		}
+		computeRefractedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
         // If transmission index isn't 1, reflect.
-//		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].has_Tr() ) {
-//			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
-//		}
+		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].has_Tr() ) {
+			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
+		}
 	}
 
 }
@@ -220,17 +218,18 @@ void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	tempdir *= 0.1f;
 	Vec3Df hitoffset = hit + tempdir;
 
-	float refractIndex;
+	refractIndex = 1.f / refractIndex;
 
 	// If the point is in a shadow, then it's inside a sphere ofzo
-	if( !pointNotInShadow(hitoffset, origin) ) {
-		refractIndex = 1.f / material.Ni();
-		currRefractIndex = refractIndex;
-	}
-	else {
-		refractIndex = material.Ni() / 1.f;
-		currRefractIndex = refractIndex;
-	}
+//	if( !pointNotInShadow(hitoffset, origin) ) {
+//		refractIndex = material.Ni();
+//		currRefractIndex = refractIndex;
+//	}
+//	else {
+//		refractIndex = 1.f / material.Ni();
+//		currRefractIndex = refractIndex;
+//	}
+
 
 
 
@@ -242,7 +241,7 @@ void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	float cosI = -1.0f * Vec3Df::dotProduct(hitnormal, viewDir);
 	float cosT2 = 1.0 - refractIndex * refractIndex * (1.0f - cosI - cosI);
 
-	if(cosT2 < 0.001f)
+	if(cosT2 < 0.01f)
 		return;
 
 	Vec3Df refractedVector = (viewDir * refractIndex) + (hitnormal * (refractIndex * cosI - sqrtf(cosT2)));
@@ -252,13 +251,14 @@ void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	Vec3Df newHit = hit + EPSILON * viewDir;
 
 	Vec3Df refractedColor;
+
 	performRayTracing(newHit, refractedVector, level, refractedColor);
+	//currRefractIndex = refractIndex;
 
 
-
-	refractedColor = refractedColor * (1.0f - material.Tr());
-	color = color * material.Tr();
-	color = color + refractedColor;
+	refractedColor = refractedColor * (1.f - material.Tr());
+	color *= material.Tr();
+	color += refractedColor;
 
 }
 
@@ -289,8 +289,8 @@ void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	Vec3Df reflectedColor;
 	performRayTracing(newHit, reflectVector, level, reflectedColor);
 
-//	if(reflectedColor == Vec3Df(0.f, 0.f, 0.f))
-//		return;
+	if(reflectedColor == Vec3Df(0.f, 0.f, 0.f))
+		return;
 
 	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
 	reflectedColor = reflectedColor * (1.f - material.Tr());
