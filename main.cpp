@@ -258,8 +258,8 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 			//std::lock_guard<std::mutex> guard(mutex);
 			// Lock mutex to output doesn't get messed up
 			mutex.lock();
-			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
-				<< WindowSize_X << "                \r";
+			//std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
+			//	<< WindowSize_X << "                \r";
 			std::cout.flush();
 			mutex.unlock();
 

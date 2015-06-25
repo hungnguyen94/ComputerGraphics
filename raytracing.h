@@ -33,7 +33,7 @@ bool intersectPlane(const Vec3Df & origin, const Vec3Df & dest, const std::vecto
 void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal);
 
 void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleIndex, Vec3Df & color, Vec3Df & hitnormal);
-
+void computeDirectLightPlane( Vec3Df lightPosition, Vec3Df hit, Vec3Df & color, Vec3Df & hitnormal);
 void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal);
 
 //your main function to rewrite
