@@ -26,11 +26,11 @@ Vec3Df testRayDestination;
 const bool verbose = false;
 const bool shadowOn = true;
 const bool reflectOn = true;
-const bool refractOn = false;
+const bool refractOn = true;
 
 const int lightSamples = 4;
 
-const float lightIntensity2 = 150.f;
+const float lightIntensity2 = 120.f;
 
 float refractIndex = 0.66f;
 
@@ -53,10 +53,10 @@ void init()
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
 //	MyMesh.loadMesh("sphereonplane.obj", true);
-	MyMesh.loadMesh("twospheres.obj", true);
+//	MyMesh.loadMesh("twospheres.obj", true);
 	//MyMesh.loadMesh("sphereinroomobj.obj", true);
 //	MyMesh.loadMesh("cube.obj", true);
-//	MyMesh.loadMesh("monkey.obj", true);
+	MyMesh.loadMesh("monkey.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -212,7 +212,7 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
             if(verbose)
                 std::cout << "material illum: " << MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].illum() << std::endl;
         }
-		computeRefractedLight(origin, dest, level, hit, refractColor, triangleIndex, hitnormal);
+		computeRefractedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
         // If transmission index isn't 1, reflect.
 		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].Tr() < 1 ) {
 			Vec3Df lightDir = MyLightPositions[i] - hit;
@@ -246,9 +246,6 @@ void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 //		refractIndex = 1.f / material.Ni();
 //		currRefractIndex = refractIndex;
 //	}
-
-
-
 
 	//float refractIndex = material.Ni();
 
@@ -356,7 +353,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	float specAngle = Vec3Df::dotProduct(halfDir, normal);
 	Vec3Df specular = Vec3Df(0, 0, 0);
 	if(specAngle > 0 && material.has_Ks()) {
-		double specTerm = std::pow(specAngle, 2.0f * material.Ns());
+		double specTerm = std::pow(specAngle, 15.0f * material.Ns());
 		specular = specTerm * material.Ks();
 		if(verbose)
 			std::cout << "\nSpecular angle: " << specAngle << "\nSpecTerm: " << specTerm << std::endl;
