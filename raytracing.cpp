@@ -24,9 +24,10 @@ Vec3Df testRayDestination;
 
 // Set to true when you want printed info
 const bool verbose = false;
-const bool shadowOn = false;
-const bool reflectOn = false;
-const float lightIntensity = 60.f;
+const bool shadowOn = true;
+const bool reflectOn = true;
+const bool refractOn = true;
+const float lightIntensity = 100.f;
 
 //int level2 = 5;
 
@@ -47,10 +48,10 @@ void init()
 	//MyMesh.loadMesh("cubeonplane.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
-//	MyMesh.loadMesh("sphereonplane.obj", true);
+	MyMesh.loadMesh("sphereonplane.obj", true);
 //	MyMesh.loadMesh("twospheres.obj", true);
 	//MyMesh.loadMesh("sphereinroomobj.obj", true);
-	MyMesh.loadMesh("cube.obj", true);
+//	MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -194,11 +195,43 @@ void shade( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hi
         // If transmission index isn't 1, reflect.
 		if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].has_Tr() ) {
 			computeReflectedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
+			computeRefractedLight(origin, dest, level, hit, color, triangleIndex, hitnormal);
 		}
 	}
 
 }
 
+void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal)
+{
+	if(refractOn == false)
+		return;
+
+	Material material = MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]];
+
+	float rindex =  material.Ni();
+	float cosI = Vec3Df::dotProduct(hitnormal, dest);
+	float sinT2 = index * index * (1.0f - cosI * cosI);
+
+	if( sinT2 > 1.0f ) {
+		std::cout << "sinT2: " << sinT2 << std::endl;
+		return;
+	}
+
+	float cosT = sqrtf(1.0f - sinT2);
+	Vec3Df refractedVector = dest * index + hitnormal * (index * cosI - cosT);
+
+	Vec3Df refractedColor;
+	performRayTracing(hit, refractedVector, level, refractedColor);
+
+
+
+	refractedColor = refractedColor * (1.0f - material.Tr());
+	color = color * material.Tr();
+	color += refractedColor;
+
+
+
+}
 void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal)
 {
 	if(reflectOn == false)

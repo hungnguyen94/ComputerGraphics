@@ -35,6 +35,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 
 void computeReflectedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal);
 
+void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & level, Vec3Df & hit, Vec3Df & color, int & triangleIndex, Vec3Df & hitnormal);
 //your main function to rewrite
 void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, Vec3Df & color);
 
