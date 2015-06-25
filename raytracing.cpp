@@ -21,14 +21,11 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-// Test variables for bb
-float min_x = 999999.f;
-float min_y = 999999.f;
-float min_z = 999999.f;
 
-float max_x = -999999.f;
-float max_y = -999999.f;
-float max_z = -999999.f;
+float min_x, min_y, min_z, max_x, max_y, max_z;
+
+Vec3Df minvertex;
+Vec3Df maxvertex;
 
 // Set to true when you want printed info
 const bool verbose = false;
@@ -443,18 +440,29 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 
 // Bounding Box class
 class Box {
+    Vec3Df bounds[2];
 public:
+    Box() { }
     Box(const Vec3Df &min, const Vec3Df &max) {
         bounds[0] = min;
         bounds[1] = max;
     }
-    bool intersect(const Vec3Df & origin, const Vec3Df & dest) const;
-    Vec3Df bounds[2];
     
 };
 
+Box Boundingbox;
+
 void computeBoundingBoxes()
 {
+    // Test variables for bb
+    min_x = 999999.f;
+    min_y = 999999.f;
+    min_z = 999999.f;
+    
+    max_x = -999999.f;
+    max_y = -999999.f;
+    max_z = -999999.f;
+    
 	for (unsigned int i = 0; i < MyMesh.vertices.size(); i++)
 	{
         if (MyMesh.vertices[i].p[0] < min_x) {
@@ -477,9 +485,9 @@ void computeBoundingBoxes()
         }
 	} //http://www.cs.utah.edu/~awilliam/box/
     
-    Vec3Df minvertex = Vec3Df(min_x, min_y, min_z);
-    Vec3Df maxvertex = Vec3Df(max_x, max_y, max_z);
-    Box(minvertex, maxvertex);
+    minvertex = Vec3Df(min_x, min_y, min_z);
+    maxvertex = Vec3Df(max_x, max_y, max_z);
+    Boundingbox = Box(minvertex, maxvertex);
 }
 
 bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
@@ -493,14 +501,14 @@ bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
     // Die gast gebruikt by zn t, ty, tzmax "1 - de rest", snap niet waarom.
     
     //ray x-coordinate of close intersectionpoint
-    tx_min = ((min_x - origin.p[0]) / dest.p[0]);
+    tx_min = ((minvertex.p[0] - origin.p[0]) / dest.p[0]);
     //ray x-coordinate of far intersectionpoint
-    tx_max = ((max_x - origin.p[0]) / dest.p[0]);
+    tx_max = ((maxvertex.p[0] - origin.p[0]) / dest.p[0]);
     
     //ray y-coordinate of close intersectionpoint
-    ty_min = ((min_y - origin.p[1]) / dest.p[1]);
+    ty_min = ((minvertex.p[1] - origin.p[1]) / dest.p[1]);
     //ray y-coordinate of far intersectionpoint
-    ty_max = ((max_y - origin.p[1]) / dest.p[1]);
+    ty_max = ((maxvertex.p[1] - origin.p[1]) / dest.p[1]);
     
     //If true then ray misses
     if ((tx_min > ty_max) || (ty_min > tx_max)) {
@@ -516,9 +524,9 @@ bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
     }
     
     //ray z-coordinate of close intersectionpoint
-    tz_min = ((min_z - origin.p[2]) / dest.p[2]);
+    tz_min = ((minvertex.p[2] - origin.p[2]) / dest.p[2]);
     //ray z-coordinate of far intersectionpoint
-    tz_max = ((max_z - origin.p[2]) / dest.p[2]);
+    tz_max = ((maxvertex.p[2] - origin.p[2]) / dest.p[2]);
     
     //If true then ray misses
     if ((tx_min > tz_max) || (tz_min > tx_max)) {
