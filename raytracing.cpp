@@ -455,13 +455,13 @@ Box Boundingbox;
 void computeBoundingBoxes()
 {
     // Test variables for bb
-    min_x = 999999.f;
-    min_y = 999999.f;
-    min_z = 999999.f;
+    float min_x = 999999.f;
+    float min_y = 999999.f;
+    float min_z = 999999.f;
     
-    max_x = -999999.f;
-    max_y = -999999.f;
-    max_z = -999999.f;
+    float max_x = -999999.f;
+    float max_y = -999999.f;
+    float max_z = -999999.f;
     
 	for (unsigned int i = 0; i < MyMesh.vertices.size(); i++)
 	{
