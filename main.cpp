@@ -41,11 +41,11 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh; 
 
-unsigned int WindowSize_X = 300;  // resolution X
-unsigned int WindowSize_Y = 300;  // resolution Y
-unsigned int threadsMultiplier = 0; // Change amount of threads
+unsigned int WindowSize_X = 200;  // resolution X
+unsigned int WindowSize_Y = 200;  // resolution Y
+unsigned int threadsMultiplier = 3; // Change amount of threads
 unsigned int maxRecursionLevel = 2; // Max recursion of reflective rays
-const unsigned int superSamples = 2; // Squared amount of rays per pixel
+const unsigned int superSamples = 1; // Squared amount of rays per pixel
 
 std::mutex mutex;
 
@@ -253,11 +253,11 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 		{
 			//std::lock_guard<std::mutex> guard(mutex);
 			// Lock mutex to output doesn't get messed up
-//			mutex.lock();
-//			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
-//				<< WindowSize_X << "                \r";
-//			std::cout.flush();
-//			mutex.unlock();
+			mutex.lock();
+			std::cout << "Pixel coordinates: " << y << " x " << x << " of " << WindowSize_Y << " x "
+				<< WindowSize_X << "                \r";
+			std::cout.flush();
+			mutex.unlock();
 
 
 			std::vector<Vec3Df> rgbSamples;
