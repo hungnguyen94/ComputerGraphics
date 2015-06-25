@@ -242,49 +242,14 @@ void computeRefractedLight( const Vec3Df & origin, const Vec3Df & dest, int & le
 	float cosI = -1.0f * Vec3Df::dotProduct(hitnormal, viewDir);
 	float cosT2 = 1.0 - refractIndex * refractIndex * (1.0f - cosI - cosI);
 
-	if(cosT2 < 0.1f)
+	if(cosT2 < 0.001f)
 		return;
 
 	Vec3Df refractedVector = (viewDir * refractIndex) + (hitnormal * (refractIndex * cosI - sqrtf(cosT2)));
 	refractedVector.normalize();
 
 
-
-//	float rIndex = 1.33f;
-//	if( MyMesh.materials[MyMesh.triangleMaterials[triangleIndex]].has_Ni() )
-//		rIndex = material.Ni();
-//	float index = rIndex / refractIndex;
-//
-//	refractIndex = material.Ni();
-
-//	Vec3Df viewDir = hit - origin;
-//	viewDir.normalize();
-//
-//	float c1 = -Vec3Df::dotProduct(hitnormal, viewDir);
-//
-//	//std::cout << c1 << std::endl;
-//
-//	if(fabs(c1) < 0.1f)
-//		return;
-//
-//
-//	float c2 = sqrtf(1 - pow(refractIndex, 2) * (1 - pow(c1, 2)) );
-//
-//	Vec3Df refractedVector = (refractIndex * viewDir) + (refractIndex * c1 - c2) * hitnormal;
-
-//	float cosI = Vec3Df::dotProduct(hitnormal, dest);
-//	float sinT2 = refractIndex * refractIndex * (1.0f - cosI * cosI);
-//
-//	if( sinT2 > 1.0f ) {
-//		std::cout << "sinT2: " << sinT2 << std::endl;
-//		return;
-//	}
-//
-//	float cosT = sqrtf(1.0f - sinT2);
-//	Vec3Df refractedVector = dest * index + hitnormal * (index * cosI - cosT);
-	Vec3Df tempdir = origin - hit;
-	tempdir.normalize();
-	Vec3Df newHit = hit + EPSILON * tempdir;
+	Vec3Df newHit = hit + EPSILON * viewDir;
 
 	Vec3Df refractedColor;
 	performRayTracing(newHit, refractedVector, level, refractedColor);
