@@ -21,40 +21,175 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-
-float min_x, min_y, min_z, max_x, max_y, max_z;
-
-Vec3Df minvertex;
-Vec3Df maxvertex;
-
 // Set to true when you want printed info
 const bool verbose = false;
 
 //use this function for any preprocessing of the mesh.
 void init()
 {
-	//load the mesh file
-	//please realize that not all OBJ files will successfully load.
-	//Nonetheless, if they come from Blender, they should, if they 
-	//are exported as WavefrontOBJ.
-	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
-	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
-	//otherwise the application will not load properly
-	//MyMesh.loadMesh("reflectionTest.obj", true);
-	//MyMesh.loadMesh("dodgeColorTest.obj", true);
-	//MyMesh.loadMesh("macbook pro.obj", true);
-	//MyMesh.loadMesh("CoffeeTable.obj", true);
-	//MyMesh.loadMesh("cube.obj", true);
-	//MyMesh.loadMesh("capsule.obj", true);
-	//MyMesh.loadMesh("Rock1.obj", true);
-	MyMesh.loadMesh("sphereonplane.obj", true);
-	MyMesh.computeVertexNormals();
-
-	//one first move: initialize the first light source
-	//at least ONE light source has to be in the scene!!!
-	//here, we set it to the current location of the camera
-	MyLightPositions.push_back(MyCameraPosition);
+    //load the mesh file
+    //please realize that not all OBJ files will successfully load.
+    //Nonetheless, if they come from Blender, they should, if they
+    //are exported as WavefrontOBJ.
+    //PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
+    //model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
+    //otherwise the application will not load properly
+    //MyMesh.loadMesh("reflectionTest.obj", true);
+    //MyMesh.loadMesh("dodgeColorTest.obj", true);
+    //MyMesh.loadMesh("macbook pro.obj", true);
+    //MyMesh.loadMesh("CoffeeTable.obj", true);
+    //MyMesh.loadMesh("cube.obj", true);
+    //MyMesh.loadMesh("capsule.obj", true);
+    //MyMesh.loadMesh("Rock1.obj", true);
+    MyMesh.loadMesh("sphereonplane.obj", true);
+    MyMesh.computeVertexNormals();
+    
+    //one first move: initialize the first light source
+    //at least ONE light source has to be in the scene!!!
+    //here, we set it to the current location of the camera
+    MyLightPositions.push_back(MyCameraPosition);
 }
+
+//Bounding box limits
+float min_x, min_y, min_z, max_x, max_y, max_z;
+
+//Bounding box vertices
+Vec3Df minvertex;
+Vec3Df maxvertex;
+
+
+//===================================================================================================================
+//                                                                                                                  =
+//                                                  BOUNDING BOX CODE                                               =
+//                                                                                                                  =
+//===================================================================================================================
+
+
+
+// Bounding Box class
+class Box {
+    Vec3Df bounds[2];
+public:
+    Box() { }
+    Box(const Vec3Df &min, const Vec3Df &max) {
+        bounds[0] = min;
+        bounds[1] = max;
+    }
+    
+};
+
+Box Boundingbox;
+
+void computeBoundingBoxes()
+{
+    // Test variables for bb
+    min_x = 999999.f;
+    min_y = 999999.f;
+    min_z = 999999.f;
+    
+    max_x = -999999.f;
+    max_y = -999999.f;
+    max_z = -999999.f;
+    
+    for (unsigned int i = 0; i < MyMesh.vertices.size(); i++)
+    {
+        if (MyMesh.vertices[i].p[0] < min_x) {
+            min_x = MyMesh.vertices[i].p[0];
+        }
+        if (MyMesh.vertices[i].p[1] < min_y) {
+            min_y = MyMesh.vertices[i].p[1];
+        }
+        if (MyMesh.vertices[i].p[2] < min_z) {
+            min_z = MyMesh.vertices[i].p[2];
+        }
+        if (MyMesh.vertices[i].p[0] > max_x) {
+            max_x = MyMesh.vertices[i].p[0];
+        }
+        if (MyMesh.vertices[i].p[1] > max_y) {
+            max_y = MyMesh.vertices[i].p[1];
+        }
+        if (MyMesh.vertices[i].p[2] > max_z) {
+            max_z = MyMesh.vertices[i].p[2];
+        }
+    } //http://www.cs.utah.edu/~awilliam/box/
+    
+    minvertex = Vec3Df(min_x, min_y, min_z);
+    maxvertex = Vec3Df(max_x, max_y, max_z);
+    Boundingbox = Box(minvertex, maxvertex);
+}
+
+//Bounding box computed at this moment.
+void computeBoundingBoxes();
+
+
+bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
+    float tx_min, tx_max, ty_min, ty_max, tz_min, tz_max;
+    
+    //2
+    // Die gast gebruikt by zn t, ty, tzmax "1 - de rest", snap niet waarom.
+    
+    //ray x-coordinate of close intersectionpoint
+    tx_min = ((minvertex.p[0] - origin.p[0]) / dest.p[0]);
+    //ray x-coordinate of far intersectionpoint
+    tx_max = ((maxvertex.p[0] - origin.p[0]) / dest.p[0]);
+    
+    //ray y-coordinate of close intersectionpoint
+    ty_min = ((minvertex.p[1] - origin.p[1]) / dest.p[1]);
+    //ray y-coordinate of far intersectionpoint
+    ty_max = ((maxvertex.p[1] - origin.p[1]) / dest.p[1]);
+    
+    //If true then ray misses
+    if ((tx_min > ty_max) || (ty_min > tx_max)) {
+        return false;
+    }
+    
+    //Find t_in and t_out
+    if (ty_min > tx_min) {
+        tx_min = ty_min;
+    }
+    if (ty_max < tx_max) {
+        tx_max = ty_max;
+    }
+    
+    //ray z-coordinate of close intersectionpoint
+    tz_min = ((minvertex.p[2] - origin.p[2]) / dest.p[2]);
+    //ray z-coordinate of far intersectionpoint
+    tz_max = ((maxvertex.p[2] - origin.p[2]) / dest.p[2]);
+    
+    //If true then ray misses
+    if ((tx_min > tz_max) || (tz_min > tx_max)) {
+        return false;
+    }
+    
+    //3
+    // Geloof dat we dit eruit kunnen gooien. t0,t1 is namelijk het interval
+    // van valid hits. Maar dat interval is volgens mij al in onze intersec geregeld.
+    // Staat verder ook niet in de slides.
+    //if (tz_min > tx_min) {
+    //tmin = tzmin;
+    //}
+    //if (tz_max < tx_max) {
+    //tmax = tzmax;
+    //}
+    //return ( (tmin < t1) && (tmax > t0) );
+    
+    return true;
+}
+
+
+
+//===================================================================================================================
+//                                                                                                                  =
+//                                               END BOUNDING BOX CODE                                              =
+//                                                                                                                  =
+//===================================================================================================================
+
+
+
+
+
+
+
 
 //return the color of your pixel.
 void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, Vec3Df & color)
@@ -62,9 +197,16 @@ void performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int &level, V
 	// Stop if the maxlevel is reached
 	if(level <= 0)
 		return;
+    
+    //Stop if ray travels outside Bounding Box
+    if( !(boxIntersection(origin, dest))) {
+        return;
+    }
 
+    
 	Vec3Df hit, hitnormal;
 	int triangleIndex = 0;
+    
 	if( intersectRay(origin, dest, hit, --level, triangleIndex, hitnormal) )
 	{
 		if(verbose)
@@ -438,114 +580,6 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	}
 }
 
-// Bounding Box class
-class Box {
-    Vec3Df bounds[2];
-public:
-    Box() { }
-    Box(const Vec3Df &min, const Vec3Df &max) {
-        bounds[0] = min;
-        bounds[1] = max;
-    }
-    
-};
 
-Box Boundingbox;
-
-void computeBoundingBoxes()
-{
-    // Test variables for bb
-    float min_x = 999999.f;
-    float min_y = 999999.f;
-    float min_z = 999999.f;
-    
-    float max_x = -999999.f;
-    float max_y = -999999.f;
-    float max_z = -999999.f;
-    
-	for (unsigned int i = 0; i < MyMesh.vertices.size(); i++)
-	{
-        if (MyMesh.vertices[i].p[0] < min_x) {
-            min_x = MyMesh.vertices[i].p[0];
-		}
-        if (MyMesh.vertices[i].p[1] < min_y) {
-            min_y = MyMesh.vertices[i].p[1];
-        }
-        if (MyMesh.vertices[i].p[2] < min_z) {
-            min_z = MyMesh.vertices[i].p[2];
-        }
-        if (MyMesh.vertices[i].p[0] > max_x) {
-            max_x = MyMesh.vertices[i].p[0];
-        }
-        if (MyMesh.vertices[i].p[1] > max_y) {
-            max_y = MyMesh.vertices[i].p[1];
-        }
-        if (MyMesh.vertices[i].p[2] > max_z) {
-            max_z = MyMesh.vertices[i].p[2];
-        }
-	} //http://www.cs.utah.edu/~awilliam/box/
-    
-    minvertex = Vec3Df(min_x, min_y, min_z);
-    maxvertex = Vec3Df(max_x, max_y, max_z);
-    Boundingbox = Box(minvertex, maxvertex);
-}
-
-bool boxIntersection( const Vec3Df & origin, const Vec3Df & dest) {
-    float tx_min, tx_max, ty_min, ty_max, tz_min, tz_max;
-    
-    //1
-    //We hebben die max_x,y,z en min_x,y,z dus nodig uit die methode hierboven.
-    //Privates ervan maken en dan memoryreferences gebruiken?
-    
-    //2
-    // Die gast gebruikt by zn t, ty, tzmax "1 - de rest", snap niet waarom.
-    
-    //ray x-coordinate of close intersectionpoint
-    tx_min = ((minvertex.p[0] - origin.p[0]) / dest.p[0]);
-    //ray x-coordinate of far intersectionpoint
-    tx_max = ((maxvertex.p[0] - origin.p[0]) / dest.p[0]);
-    
-    //ray y-coordinate of close intersectionpoint
-    ty_min = ((minvertex.p[1] - origin.p[1]) / dest.p[1]);
-    //ray y-coordinate of far intersectionpoint
-    ty_max = ((maxvertex.p[1] - origin.p[1]) / dest.p[1]);
-    
-    //If true then ray misses
-    if ((tx_min > ty_max) || (ty_min > tx_max)) {
-        return false;
-    }
-    
-    //Find t_in and t_out
-    if (ty_min > tx_min) {
-        tx_min = ty_min;
-    }
-    if (ty_max < tx_max) {
-        tx_max = ty_max;
-    }
-    
-    //ray z-coordinate of close intersectionpoint
-    tz_min = ((minvertex.p[2] - origin.p[2]) / dest.p[2]);
-    //ray z-coordinate of far intersectionpoint
-    tz_max = ((maxvertex.p[2] - origin.p[2]) / dest.p[2]);
-    
-    //If true then ray misses
-    if ((tx_min > tz_max) || (tz_min > tx_max)) {
-        return false;
-    }
-    
-    //3
-    // Geloof dat we dit eruit kunnen gooien. t0,t1 is namelijk het interval
-    // van valid hits. Maar dat interval is volgens mij al in onze intersec geregeld.
-    // Staat verder ook niet in de slides.
-    //if (tz_min > tx_min) {
-    //tmin = tzmin;
-    //}
-    //if (tz_max < tx_max) {
-    //tmax = tzmax;
-    //}
-    //return ( (tmin < t1) && (tmax > t0) );
-    
-    return true;
-}
 
 
