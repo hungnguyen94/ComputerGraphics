@@ -45,7 +45,7 @@ unsigned int WindowSize_X = 200;  // resolution X
 unsigned int WindowSize_Y = 200;  // resolution Y
 unsigned int threadsMultiplier = 3; // Change amount of threads
 unsigned int maxRecursionLevel = 2; // Max recursion of reflective rays
-const unsigned int superSamples = 1; // Squared amount of rays per pixel
+const unsigned int superSamples = 2; // Squared amount of rays per pixel
 
 std::mutex mutex;
 
@@ -281,8 +281,6 @@ void threadedRayTracingTwo(const int y_start, const int y_end, const int x_start
 					Vec3Df rgb = Vec3Df(0,0,0);
 					int maxLevel = maxRecursionLevel + 1;
 					performRayTracing(origin, dest, maxLevel, rgb);
-					if(rgb != Vec3Df(0,0,0))
-						std::cout << "Sample: " << j << i << "\t\t" << rgb << std::endl;
 					rgbSamples.push_back(rgb);
 				}
 			}

@@ -23,7 +23,7 @@ Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
 // Set to true when you want printed info
-const bool verbose = true;
+const bool verbose = false;
 const bool shadowOn = false;
 const bool reflectOn = false;
 const float lightIntensity = 60.f;
@@ -47,7 +47,7 @@ void init()
 	//MyMesh.loadMesh("cubeonplane.obj", true);
 	//MyMesh.loadMesh("capsule.obj", true);
 	//MyMesh.loadMesh("Rock1.obj", true);
-	//MyMesh.loadMesh("sphereonplane.obj", true);
+//	MyMesh.loadMesh("sphereonplane.obj", true);
 //	MyMesh.loadMesh("twospheres.obj", true);
 	//MyMesh.loadMesh("sphereinroomobj.obj", true);
 	MyMesh.loadMesh("cube.obj", true);
@@ -249,7 +249,7 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 	lightDir.normalize();
 	distance = distance * distance;
 
-	//Calculate normal of triangle
+//	Calculate normal of triangle
 //	Vec3Df edge0 = MyMesh.vertices[triangle3d.v[1]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 //	Vec3Df edge1 = MyMesh.vertices[triangle3d.v[2]].p -  MyMesh.vertices[triangle3d.v[0]].p;
 //	Vec3Df normal = Vec3Df::crossProduct(edge0, edge1);
@@ -258,10 +258,12 @@ void computeDirectLight( Vec3Df lightPosition, Vec3Df hit, const int triangleInd
 
 	// cosine of the angle between the normal and the lightDir.
 	float NdotL = Vec3Df::dotProduct(normal, lightDir);
+
 	// Can't be negative, if so set to 0.
-	if(NdotL <= 0.f) {
-		NdotL = 0;
+	if(NdotL < 0) {
+		NdotL = 0.f;
 	}
+
 	// D = Id*Kd*cos(a)
 	Vec3Df diffuse = lightColor * lightIntensity * NdotL * material.Kd();
 	// A = Ia*Ka
